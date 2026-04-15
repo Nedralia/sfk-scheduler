@@ -1,6 +1,12 @@
 import csv
 from datetime import datetime, timedelta
+from pathlib import Path
 import random
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
 
 
 def load_names(filename):
@@ -40,6 +46,7 @@ def generate_schedule(start_date, members, excluded, already_assigned):
         schedule.append((
             date.strftime("%Y-%m-%d"),
             week_number,
+            iso_year,
             person
         ))
         date += timedelta(weeks=1)
@@ -58,10 +65,10 @@ def main():
     start_date_input = input("Enter start date (YYYY-MM-DD): ")
     start_date = datetime.strptime(start_date_input, "%Y-%m-%d")
 
-    members = load_names("members.csv")
-    excluded = load_names("excluded.csv")
+    members = load_names(DATA_DIR / "members.csv")
+    excluded = load_names(DATA_DIR / "excluded.csv")
 
-    already_assigned, next_date = load_previous_schedule("previous_schedule.csv")
+    already_assigned, next_date = load_previous_schedule(DATA_DIR / "previous_schedule.csv")
 
     if next_date:
         start_date = max(start_date, next_date)
@@ -73,10 +80,10 @@ def main():
         already_assigned=already_assigned,
     )
 
-    save_csv(schedule, "schedule.csv")
+    save_csv(schedule, DATA_DIR / "schedule.csv")
 
     print(f"\nSchedule created: {len(schedule)} weeks")
-    print("File written: schedule.csv")
+    print(f"File written: {DATA_DIR / 'schedule.csv'}")
 
 
 if __name__ == "__main__":

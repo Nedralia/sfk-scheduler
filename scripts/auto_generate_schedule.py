@@ -1,12 +1,15 @@
 import csv
 from datetime import datetime, timedelta
+from pathlib import Path
 import subprocess
 import sys
-import os
 
 
-SCHEDULE_FILE = "schedule.csv"
-GENERATE_SCRIPT = "schedule.py"
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+SCHEDULE_FILE = DATA_DIR / "schedule.csv"
+GENERATE_SCRIPT = SCRIPT_DIR / "schedule.py"
 THRESHOLD_DAYS = 60
 
 
@@ -27,7 +30,7 @@ def main():
 
     if not last_date:
         print("No schedule found. Generating new schedule.")
-        subprocess.run([sys.executable, GENERATE_SCRIPT])
+        subprocess.run([sys.executable, str(GENERATE_SCRIPT)], check=True)
         return
 
     remaining_days = (last_date - today).days
@@ -38,7 +41,7 @@ def main():
     if remaining_days <= THRESHOLD_DAYS:
         print("⚠ Schedule nearing end → generating new schedule")
 
-        subprocess.run([sys.executable, GENERATE_SCRIPT])
+        subprocess.run([sys.executable, str(GENERATE_SCRIPT)], check=True)
     else:
         print("Schedule still sufficient — nothing to do")
 

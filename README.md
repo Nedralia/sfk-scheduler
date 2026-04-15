@@ -21,26 +21,30 @@ The system is designed to run automatically using cron jobs.
 -   Automatically generates new schedules when 2 months remain
 -   CSV output (Excel compatible)
 -   No external Python dependencies
+-   A backend that runs on AWS
 
 ------------------------------------------------------------------------
 
 ## Project Structure
 
     club-cleaning-scheduler/
-    ├── schedule.py                  # Schedule generator
-    ├── send_reminders.py           # Daily email reminder sender
-    ├── auto_generate_schedule.py   # Auto schedule regeneration
-    ├── members.csv                 # Member list
-    ├── excluded.csv                # Excluded members
-    ├── previous_schedule.csv       # Optional existing schedule
-    ├── schedule.csv                # Generated output
+    ├── scripts/
+    │   ├── schedule.py             # Schedule generator
+    │   ├── send_reminder.py        # Daily email reminder sender
+    │   ├── auto_generate_schedule.py
+    │   └── sync_members.py         # Member sync entrypoint
+    ├── data/
+    │   ├── members.csv             # Member list
+    │   ├── excluded.csv            # Excluded members
+    │   ├── previous_schedule.csv   # Optional existing schedule
+    │   └── schedule.csv            # Generated output
     └── README.md
 
 ------------------------------------------------------------------------
 
 ## File Descriptions
 
-### schedule.py
+### scripts/schedule.py
 
 Generates a weekly cleaning schedule based on:
 
@@ -54,13 +58,13 @@ Rules:
 -   Each person is assigned only once per year
 -   All weeks start on Mondays
 -   ISO week number is included
--   Output is written to `schedule.csv`
+-   Output is written to `data/schedule.csv`
 
 ------------------------------------------------------------------------
 
-### send_reminders.py
+### scripts/send_reminder.py
 
-Reads `schedule.csv` daily and:
+Reads `data/schedule.csv` daily and:
 
 -   Finds who is scheduled 3 days in advance
 -   Sends an email reminder to that person
@@ -69,18 +73,18 @@ Intended to run automatically using cron.
 
 ------------------------------------------------------------------------
 
-### auto_generate_schedule.py
+### scripts/auto_generate_schedule.py
 
-Monitors `schedule.csv` and:
+Monitors `data/schedule.csv` and:
 
 -   Detects when less than 60 days remain in the schedule
--   Automatically runs `schedule.py` to generate new future schedules
+-   Automatically runs `scripts/schedule.py` to generate new future schedules
 
 Intended to run daily using cron.
 
 ------------------------------------------------------------------------
 
-### members.csv
+### data/members.csv
 
 List of all club members.
 
@@ -95,7 +99,7 @@ Charlie
 
 ------------------------------------------------------------------------
 
-### excluded.csv
+### data/excluded.csv
 
 List of members excluded from cleaning duty.
 
@@ -109,7 +113,7 @@ BoardMember2
 
 ------------------------------------------------------------------------
 
-### previous_schedule.csv (optional)
+### data/previous_schedule.csv (optional)
 
 Used to continue scheduling within the same year without duplicates.
 
@@ -122,7 +126,7 @@ week_start,week_number,year,name
 
 ------------------------------------------------------------------------
 
-### schedule.csv
+### data/schedule.csv
 
 Generated output file containing the cleaning schedule.
 
@@ -140,19 +144,19 @@ week_start,week_number,year,name
 Generate a new schedule:
 
 ``` bash
-python schedule.py
+python scripts/schedule.py
 ```
 
 Run reminders manually:
 
 ``` bash
-python send_reminders.py
+python scripts/send_reminder.py
 ```
 
 Check if schedule needs to be regenerated:
 
 ``` bash
-python auto_generate_schedule.py
+python scripts/auto_generate_schedule.py
 ```
 
 ------------------------------------------------------------------------
