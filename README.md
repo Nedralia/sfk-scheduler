@@ -185,6 +185,18 @@ Before applying, set a valid SES sender in `infrastructure/terraform.tfvars`.
 
 ------------------------------------------------------------------------
 
+## Version control
+
+Git is used for version control and is stored on GitHub.
+
+### Commits
+
+Commit messages should follow these guidelines.
+
+1. Should contian a brief title of what the change has done.
+2. The title must be 80 characters or less
+3. Can contain a longer description explaining why the change was made.
+
 ## License
 
 MIT License
