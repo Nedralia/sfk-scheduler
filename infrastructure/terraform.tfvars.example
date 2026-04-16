@@ -1,4 +1,2 @@
 aws_region                    = "eu-north-1"
-from_email                    = "club@example.com"
-ses_resource_arn              = "arn:aws:ses:eu-north-1:123456789012:identity/club@example.com"
 reminder_schedule_expression  = "cron(0 6 * * ? *)"

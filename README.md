@@ -3,7 +3,7 @@
 This project automatically generates and maintains a weekly cleaning
 schedule for a club house.\
 It ensures fair rotation, avoids double assignments, excludes
-special-role members, and sends automatic email reminders.
+special-role members, and prepares reminder payloads for future delivery.
 
 The system is designed to run automatically using cron jobs.
 
@@ -17,7 +17,7 @@ The system is designed to run automatically using cron jobs.
 -   Continues automatically from previous schedules
 -   All scheduled weeks start on Mondays
 -   ISO week numbers included
--   Automatic email reminders sent 3 days before assigned week
+-   Reminder payloads generated 3 days before the assigned week
 -   Automatically generates new schedules when 2 months remain
 -   CSV output (Excel compatible)
 -   No external Python dependencies
@@ -67,7 +67,7 @@ Rules:
 Reads `data/schedule.csv` daily and:
 
 -   Finds who is scheduled 3 days in advance
--   Sends an email reminder to that person
+-   Builds reminder payloads for a future delivery provider
 
 Intended to run automatically using cron.
 
@@ -169,7 +169,7 @@ The Terraform setup provisions:
 
 -   An S3 bucket for `data/schedule.csv`
 -   A Lambda function for `scripts/send_reminder.py`
--   IAM policies for CloudWatch Logs, S3 reads, and SES sending
+-   IAM policies for CloudWatch Logs and S3 reads
 -   A daily EventBridge trigger
 
 Quick start:
@@ -180,8 +180,6 @@ terraform -chdir=infrastructure init
 terraform -chdir=infrastructure plan
 terraform -chdir=infrastructure apply
 ```
-
-Before applying, set a valid SES sender in `infrastructure/terraform.tfvars`.
 
 ------------------------------------------------------------------------
 

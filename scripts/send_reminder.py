@@ -6,7 +6,6 @@ import boto3
 from datetime import datetime, timedelta
 
 
-ses = boto3.client("ses")
 s3 = boto3.client("s3")
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -28,31 +27,41 @@ def load_schedule_rows():
         return list(csv.DictReader(f))
 
 
+def build_reminder(row):
+    return {
+        "name": row["name"],
+        "email": row.get("email", ""),
+        "week_start": row["week_start"],
+        "week_number": row["week_number"],
+        "subject": "Club House Cleaning Reminder",
+        "body": (
+            f"Hello {row['name']},\n\n"
+            "Reminder that you are scheduled to clean the club house on:\n\n"
+            f"{row['week_start']} (Week {row['week_number']})\n\n"
+            "Thank you!"
+        ),
+    }
+
+
 def lambda_handler(event, context):
     target_date = (datetime.utcnow() + timedelta(days=3)).strftime("%Y-%m-%d")
+    due_reminders = []
 
     for row in load_schedule_rows():
         if row["week_start"] == target_date:
-            name = row["name"]
-            email = row["email"]
+            due_reminders.append(build_reminder(row))
 
-            ses.send_email(
-                Source=os.environ["FROM_EMAIL"],
-                Destination={"ToAddresses": [email]},
-                Message={
-                    "Subject": {"Data": "🏠 Club House Cleaning Reminder"},
-                    "Body": {
-                        "Text": {
-                            "Data": f"""
-Hello {name},
+    for reminder in due_reminders:
+        print(
+            "Reminder queued:",
+            reminder["week_start"],
+            reminder["name"],
+            reminder["email"],
+        )
 
-Reminder that you are scheduled to clean the club house on:
-
-📅 {row['week_start']} (Week {row['week_number']})
-
-Thank you!
-"""
-                    },
-                },
-            )
+    return {
+        "target_date": target_date,
+        "reminder_count": len(due_reminders),
+        "reminders": due_reminders,
+    }
 

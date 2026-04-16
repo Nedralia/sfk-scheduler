@@ -121,27 +121,6 @@ resource "aws_iam_role_policy" "lambda_schedule_access" {
   })
 }
 
-resource "aws_iam_role_policy" "lambda_ses" {
-  name = "${var.lambda_function_name}-ses"
-  role = aws_iam_role.send_reminder_lambda.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "ses:SendEmail",
-          "ses:SendRawEmail",
-        ]
-        Effect = "Allow"
-        Resource = [
-          var.ses_resource_arn,
-        ]
-      }
-    ]
-  })
-}
-
 resource "aws_cloudwatch_log_group" "send_reminder" {
   name              = "/aws/lambda/${var.lambda_function_name}"
   retention_in_days = var.log_retention_days
@@ -162,7 +141,6 @@ resource "aws_lambda_function" "send_reminder" {
 
   environment {
     variables = {
-      FROM_EMAIL      = var.from_email
       SCHEDULE_BUCKET = aws_s3_bucket.schedule_data.bucket
       SCHEDULE_KEY    = var.schedule_object_key
     }
@@ -172,7 +150,6 @@ resource "aws_lambda_function" "send_reminder" {
     aws_cloudwatch_log_group.send_reminder,
     aws_iam_role_policy.lambda_logging,
     aws_iam_role_policy.lambda_schedule_access,
-    aws_iam_role_policy.lambda_ses,
   ]
 
   tags = local.common_tags

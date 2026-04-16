@@ -16,17 +16,6 @@ variable "lambda_function_name" {
   default     = "sfk-scheduler-send-reminder"
 }
 
-variable "from_email" {
-  description = "Verified SES sender email address."
-  type        = string
-}
-
-variable "ses_resource_arn" {
-  description = "SES identity ARN allowed to send emails. Use * only if you intentionally want a broader permission."
-  type        = string
-  default     = "*"
-}
-
 variable "schedule_bucket_name_prefix" {
   description = "Prefix used to build the S3 bucket name that stores the schedule CSV."
   type        = string
