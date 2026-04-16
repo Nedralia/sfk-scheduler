@@ -1,0 +1,3 @@
+.terraform/
+send_reminder.zip
+terraform.tfvars

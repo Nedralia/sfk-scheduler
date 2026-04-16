@@ -161,6 +161,30 @@ python scripts/auto_generate_schedule.py
 
 ------------------------------------------------------------------------
 
+## AWS Infrastructure
+
+Terraform files for AWS live in `infrastructure/`.
+
+The Terraform setup provisions:
+
+-   An S3 bucket for `data/schedule.csv`
+-   A Lambda function for `scripts/send_reminder.py`
+-   IAM policies for CloudWatch Logs, S3 reads, and SES sending
+-   A daily EventBridge trigger
+
+Quick start:
+
+``` bash
+cp infrastructure/terraform.tfvars.example infrastructure/terraform.tfvars
+terraform -chdir=infrastructure init
+terraform -chdir=infrastructure plan
+terraform -chdir=infrastructure apply
+```
+
+Before applying, set a valid SES sender in `infrastructure/terraform.tfvars`.
+
+------------------------------------------------------------------------
+
 ## License
 
 MIT License
