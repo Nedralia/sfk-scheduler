@@ -8,6 +8,8 @@ import random
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
+DEFAULT_PREVIOUS_SCHEDULE_FILE = DATA_DIR / "previous_schedule.csv"
+DEFAULT_OUTPUT_FILE = DATA_DIR / "schedule.csv"
 
 
 def load_names(filename):
@@ -60,6 +62,8 @@ def generate_schedule(start_date, members, excluded, already_assigned):
 
 
 def save_csv(schedule, filename):
+    filename.parent.mkdir(parents=True, exist_ok=True)
+
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["week_start", "week_number", "year", "name"])
@@ -71,6 +75,23 @@ def parse_args():
     parser.add_argument(
         "--start-date",
         help="Schedule start date in YYYY-MM-DD format.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_FILE,
+        help="Path to the output schedule CSV file.",
+    )
+    parser.add_argument(
+        "--previous-schedule",
+        type=Path,
+        default=DEFAULT_PREVIOUS_SCHEDULE_FILE,
+        help="Path to a previous schedule CSV file used to avoid duplicate assignments.",
+    )
+    parser.add_argument(
+        "--force-reset",
+        action="store_true",
+        help="Ignore previous schedule data and start a fresh rotation.",
     )
     return parser.parse_args()
 
@@ -86,11 +107,16 @@ def resolve_start_date(start_date_arg):
 def main():
     args = parse_args()
     start_date = resolve_start_date(args.start_date)
+    output_file = args.output
+    previous_schedule_file = args.previous_schedule
 
     members = load_names(DATA_DIR / "members.csv")
     excluded = load_names(DATA_DIR / "excluded.csv")
 
-    already_assigned, next_date = load_previous_schedule(DATA_DIR / "previous_schedule.csv")
+    if args.force_reset:
+        already_assigned, next_date = set(), None
+    else:
+        already_assigned, next_date = load_previous_schedule(previous_schedule_file)
 
     if next_date:
         start_date = max(start_date, next_date)
@@ -102,10 +128,10 @@ def main():
         already_assigned=already_assigned,
     )
 
-    save_csv(schedule, DATA_DIR / "schedule.csv")
+    save_csv(schedule, output_file)
 
     print(f"\nSchedule created: {len(schedule)} weeks")
-    print(f"File written: {DATA_DIR / 'schedule.csv'}")
+    print(f"File written: {output_file}")
 
 
 if __name__ == "__main__":

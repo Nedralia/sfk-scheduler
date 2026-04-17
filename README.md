@@ -165,6 +165,18 @@ Generate a new schedule non-interactively:
 python scripts/schedule.py --start-date 2026-04-15
 ```
 
+Generate a new schedule with custom input and output files:
+
+``` bash
+python scripts/schedule.py --start-date 2026-04-15 --previous-schedule data/previous_schedule.csv --output data/schedule.csv
+```
+
+Generate a fresh schedule and ignore previous assignments:
+
+``` bash
+python scripts/schedule.py --start-date 2026-04-15 --force-reset
+```
+
 Run reminders manually:
 
 ``` bash
