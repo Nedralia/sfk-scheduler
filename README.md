@@ -33,7 +33,7 @@ The system is designed to run automatically using cron jobs.
     │   ├── send_reminder.py        # Daily email reminder sender
     │   ├── auto_generate_schedule.py
     │   ├── clean_schedule_data.py  # Resets generated schedule data
-    │   └── sync_members.py         # Member sync entrypoint
+    │   └── sync_members.py         # Fetches members from MyWebLog
     ├── data/
     │   ├── members.csv             # Member list
     │   ├── excluded.csv            # Excluded members
@@ -93,6 +93,16 @@ Resets generated schedule files by:
 -   Recreating `data/previous_schedule.csv`
 
 Use this when you want to start scheduling from a clean state.
+
+------------------------------------------------------------------------
+
+### scripts/sync_members.py
+
+Fetches the current active member list from MyWebLog API v4 and writes it to `data/members.csv`.
+
+Required environment variables:
+
+-   `MWL_TOKEN`
 
 ------------------------------------------------------------------------
 
@@ -193,6 +203,12 @@ Clean existing schedule data:
 
 ``` bash
 python scripts/clean_schedule_data.py
+```
+
+Fetch current members from MyWebLog:
+
+``` bash
+python scripts/sync_members.py
 ```
 
 ------------------------------------------------------------------------
