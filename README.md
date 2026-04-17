@@ -159,6 +159,12 @@ Generate a new schedule:
 python scripts/schedule.py
 ```
 
+Generate a new schedule non-interactively:
+
+``` bash
+python scripts/schedule.py --start-date 2026-04-15
+```
+
 Run reminders manually:
 
 ``` bash

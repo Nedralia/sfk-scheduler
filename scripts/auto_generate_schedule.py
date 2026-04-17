@@ -27,10 +27,14 @@ def get_last_scheduled_date():
 def main():
     today = datetime.today()
     last_date = get_last_scheduled_date()
+    start_date_arg = today.strftime("%Y-%m-%d")
 
     if not last_date:
         print("No schedule found. Generating new schedule.")
-        subprocess.run([sys.executable, str(GENERATE_SCRIPT)], check=True)
+        subprocess.run(
+            [sys.executable, str(GENERATE_SCRIPT), "--start-date", start_date_arg],
+            check=True,
+        )
         return
 
     remaining_days = (last_date - today).days
@@ -41,7 +45,10 @@ def main():
     if remaining_days <= THRESHOLD_DAYS:
         print("⚠ Schedule nearing end → generating new schedule")
 
-        subprocess.run([sys.executable, str(GENERATE_SCRIPT)], check=True)
+        subprocess.run(
+            [sys.executable, str(GENERATE_SCRIPT), "--start-date", start_date_arg],
+            check=True,
+        )
     else:
         print("Schedule still sufficient — nothing to do")
 

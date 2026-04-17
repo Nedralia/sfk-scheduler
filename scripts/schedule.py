@@ -1,3 +1,4 @@
+import argparse
 import csv
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -19,6 +20,10 @@ def load_previous_schedule(filename):
         with open(filename, newline='', encoding="utf-8") as f:
             reader = csv.DictReader(f)
             data = list(reader)
+
+            if not data:
+                return set(), None
+
             assigned = {row["name"] for row in data}
             last_date = max(datetime.fromisoformat(row["week_start"]) for row in data)
             return assigned, last_date + timedelta(weeks=1)
@@ -61,9 +66,26 @@ def save_csv(schedule, filename):
         writer.writerows(schedule)
 
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Generate the club cleaning schedule.")
+    parser.add_argument(
+        "--start-date",
+        help="Schedule start date in YYYY-MM-DD format.",
+    )
+    return parser.parse_args()
+
+
+def resolve_start_date(start_date_arg):
+    if start_date_arg:
+        return datetime.strptime(start_date_arg, "%Y-%m-%d")
+
     start_date_input = input("Enter start date (YYYY-MM-DD): ")
-    start_date = datetime.strptime(start_date_input, "%Y-%m-%d")
+    return datetime.strptime(start_date_input, "%Y-%m-%d")
+
+
+def main():
+    args = parse_args()
+    start_date = resolve_start_date(args.start_date)
 
     members = load_names(DATA_DIR / "members.csv")
     excluded = load_names(DATA_DIR / "excluded.csv")
