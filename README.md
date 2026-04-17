@@ -32,6 +32,7 @@ The system is designed to run automatically using cron jobs.
     │   ├── schedule.py             # Schedule generator
     │   ├── send_reminder.py        # Daily email reminder sender
     │   ├── auto_generate_schedule.py
+    │   ├── clean_schedule_data.py  # Resets generated schedule data
     │   └── sync_members.py         # Member sync entrypoint
     ├── data/
     │   ├── members.csv             # Member list
@@ -81,6 +82,17 @@ Monitors `data/schedule.csv` and:
 -   Automatically runs `scripts/schedule.py` to generate new future schedules
 
 Intended to run daily using cron.
+
+------------------------------------------------------------------------
+
+### scripts/clean_schedule_data.py
+
+Resets generated schedule files by:
+
+-   Clearing `data/schedule.csv`
+-   Recreating `data/previous_schedule.csv`
+
+Use this when you want to start scheduling from a clean state.
 
 ------------------------------------------------------------------------
 
@@ -157,6 +169,12 @@ Check if schedule needs to be regenerated:
 
 ``` bash
 python scripts/auto_generate_schedule.py
+```
+
+Clean existing schedule data:
+
+``` bash
+python scripts/clean_schedule_data.py
 ```
 
 ------------------------------------------------------------------------
