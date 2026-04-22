@@ -14,7 +14,12 @@ THRESHOLD_DAYS = 60
 
 
 def compute_end_date(today):
-    return today.replace(year=today.year + 1) - timedelta(days=1)
+    try:
+        one_year_ahead = today.replace(year=today.year + 1)
+    except ValueError:
+        # today is Feb 29 on a leap year; land on Feb 28 next year
+        one_year_ahead = today.replace(year=today.year + 1, day=28)
+    return one_year_ahead - timedelta(days=1)
 
 
 def needs_extension(last_date, today, threshold_days=THRESHOLD_DAYS):
