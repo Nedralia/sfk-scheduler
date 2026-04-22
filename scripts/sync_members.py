@@ -90,7 +90,7 @@ def normalize_member_name(member):
 def build_users_url(offset):
 	query = parse.urlencode(
 		{
-			"active": 2,
+			"active": 1,
 			"verbose": "true",
 			"limit": DEFAULT_PAGE_SIZE,
 			"offset": offset,
