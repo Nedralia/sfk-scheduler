@@ -14,25 +14,24 @@ THRESHOLD_DAYS = 60
 
 
 def get_last_scheduled_date():
-    with open(SCHEDULE_FILE, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        dates = [datetime.fromisoformat(row["week_start"]) for row in reader]
-
-    if not dates:
+    try:
+        with open(SCHEDULE_FILE, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            dates = [datetime.fromisoformat(row["week_start"]) for row in reader]
+    except FileNotFoundError:
         return None
 
-    return max(dates)
+    return max(dates) if dates else None
 
 
 def main():
     today = datetime.today()
     last_date = get_last_scheduled_date()
-    start_date_arg = today.strftime("%Y-%m-%d")
 
     if not last_date:
         print("No schedule found. Generating new schedule.")
         subprocess.run(
-            [sys.executable, str(GENERATE_SCRIPT), "--start-date", start_date_arg],
+            [sys.executable, str(GENERATE_SCRIPT), "--start-date", today.strftime("%Y-%m-%d")],
             check=True,
         )
         return
@@ -43,10 +42,16 @@ def main():
     print(f"Days remaining: {remaining_days}")
 
     if remaining_days <= THRESHOLD_DAYS:
-        print("⚠ Schedule nearing end → generating new schedule")
+        next_start = (last_date + timedelta(weeks=1)).strftime("%Y-%m-%d")
+        print(f"⚠ Schedule nearing end → extending from {next_start}")
 
         subprocess.run(
-            [sys.executable, str(GENERATE_SCRIPT), "--start-date", start_date_arg],
+            [
+                sys.executable,
+                str(GENERATE_SCRIPT),
+                "--start-date", next_start,
+                "--previous-schedule", str(SCHEDULE_FILE),
+            ],
             check=True,
         )
     else:

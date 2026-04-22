@@ -8,7 +8,7 @@ import random
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
-DEFAULT_PREVIOUS_SCHEDULE_FILE = DATA_DIR / "previous_schedule.csv"
+DEFAULT_PREVIOUS_SCHEDULE_FILE = DATA_DIR / "schedule.csv"
 DEFAULT_OUTPUT_FILE = DATA_DIR / "schedule.csv"
 
 
@@ -24,37 +24,44 @@ def load_names(filename):
     return [name for name, _ in load_members(filename)]
 
 
-def load_previous_schedule(filename):
+def load_previous_schedule(filename, before_date):
     try:
         with open(filename, newline='', encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            data = list(reader)
+            data = list(csv.DictReader(f))
 
-            if not data:
-                return set(), None
+        if not data:
+            return [], set()
 
-            assigned = {row["name"] for row in data}
-            last_date = max(datetime.fromisoformat(row["week_start"]) for row in data)
-            return assigned, last_date + timedelta(weeks=1)
+        kept_rows = [
+            row for row in data
+            if datetime.fromisoformat(row["week_start"]) < before_date
+        ]
+        assigned_names = {row["name"] for row in kept_rows}
+        return kept_rows, assigned_names
     except FileNotFoundError:
-        return set(), None
+        return [], set()
 
 
 def align_to_monday(date):
     return date - timedelta(days=date.weekday())
 
 
-def generate_schedule(start_date, members, excluded, already_assigned):
+def generate_schedule(start_date, members, excluded, already_assigned, end_date=None):
     excluded_names = set(excluded)
-    already_assigned_names = set(already_assigned)
-    available = [
+    eligible = [
         (name, number)
         for name, number in members
-        if name not in excluded_names and name not in already_assigned_names
+        if name not in excluded_names
     ]
 
+    if not eligible:
+        raise ValueError("No eligible members to schedule (all are excluded).")
+
+    already_assigned_names = set(already_assigned)
+    available = [m for m in eligible if m[0] not in already_assigned_names]
+
     if not available:
-        raise ValueError("No available members left to schedule.")
+        available = list(eligible)
 
     random.shuffle(available)
 
@@ -62,6 +69,8 @@ def generate_schedule(start_date, members, excluded, already_assigned):
     date = align_to_monday(start_date)
 
     for name, member_number in available:
+        if end_date and date > end_date:
+            break
         iso_year, week_number, _ = date.isocalendar()
         schedule.append((
             date.strftime("%Y-%m-%d"),
@@ -75,12 +84,20 @@ def generate_schedule(start_date, members, excluded, already_assigned):
     return schedule
 
 
-def save_csv(schedule, filename):
+def save_csv(kept_rows, schedule, filename):
     filename.parent.mkdir(parents=True, exist_ok=True)
 
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["week_start", "week_number", "year", "name", "member_number"])
+        for row in kept_rows:
+            writer.writerow([
+                row["week_start"],
+                row["week_number"],
+                row["year"],
+                row["name"],
+                row.get("member_number", ""),
+            ])
         writer.writerows(schedule)
 
 
@@ -107,6 +124,10 @@ def parse_args():
         action="store_true",
         help="Ignore previous schedule data and start a fresh rotation.",
     )
+    parser.add_argument(
+        "--end-date",
+        help="Schedule end date in YYYY-MM-DD format. No weeks beyond this date will be added.",
+    )
     return parser.parse_args()
 
 
@@ -121,6 +142,7 @@ def resolve_start_date(start_date_arg):
 def main():
     args = parse_args()
     start_date = resolve_start_date(args.start_date)
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d") if args.end_date else None
     output_file = args.output
     previous_schedule_file = args.previous_schedule
 
@@ -128,24 +150,23 @@ def main():
     excluded = load_names(DATA_DIR / "excluded.csv")
 
     if args.force_reset:
-        already_assigned, next_date = set(), None
+        kept_rows, already_assigned = [], set()
     else:
-        already_assigned, next_date = load_previous_schedule(previous_schedule_file)
-
-    if next_date:
-        start_date = max(start_date, next_date)
+        kept_rows, already_assigned = load_previous_schedule(previous_schedule_file, start_date)
 
     schedule = generate_schedule(
         start_date=start_date,
         members=members,
         excluded=excluded,
         already_assigned=already_assigned,
+        end_date=end_date,
     )
 
-    save_csv(schedule, output_file)
+    save_csv(kept_rows, schedule, output_file)
 
-    print(f"\nSchedule created: {len(schedule)} weeks")
-    print(f"File written: {output_file}")
+    print(f"\nSchedule kept:  {len(kept_rows)} weeks")
+    print(f"Schedule added: {len(schedule)} weeks")
+    print(f"File written:   {output_file}")
 
 
 if __name__ == "__main__":
