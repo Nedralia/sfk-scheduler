@@ -32,22 +32,6 @@ def normalize_member_number(member):
     return str(raw).strip()
 
 
-def parse_api_response(payload):
-    if isinstance(payload, dict):
-        if payload.get("errors"):
-            error_messages = "; ".join(
-                item.get("message", "Unknown API error")
-                for item in payload["errors"]
-                if isinstance(item, dict)
-            )
-            raise RuntimeError(f"MyWebLog API error: {error_messages}")
-
-        users = payload.get("users")
-        if isinstance(users, list):
-            return users
-
-    raise ValueError("Could not find a users list in the MyWebLog response.")
-
 
 def normalize_members(all_users):
     seen_names = {}

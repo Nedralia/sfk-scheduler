@@ -3,18 +3,6 @@ from datetime import datetime
 from pathlib import Path
 
 
-def load_members(filename):
-    with open(filename, newline="", encoding="utf-8") as f:
-        return [
-            (row["name"].strip(), row.get("member_number", "").strip())
-            for row in csv.DictReader(f)
-        ]
-
-
-def load_names(filename):
-    return [name for name, _ in load_members(filename)]
-
-
 def load_previous_schedule(filename, before_date):
     try:
         with open(filename, newline="", encoding="utf-8") as f:
@@ -48,16 +36,6 @@ def save_schedule_csv(kept_rows, schedule, filename):
                 row.get("member_number", ""),
             ])
         writer.writerows(schedule)
-
-
-def write_members_csv(members, output_file):
-    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["member_number", "name"])
-        for name, member_number in members:
-            writer.writerow([member_number, name])
 
 
 def get_last_scheduled_date(schedule_file):

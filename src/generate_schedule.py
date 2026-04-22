@@ -2,11 +2,11 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-from sfk_scheduler.io import load_members, load_names, load_previous_schedule, save_schedule_csv
+from sfk_scheduler.member_io import load_members, load_names
+from sfk_scheduler.schedule_io import load_previous_schedule, save_schedule_csv
 from sfk_scheduler.schedule import generate_schedule
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 DEFAULT_SCHEDULE_FILE = DATA_DIR / "schedule.csv"
 

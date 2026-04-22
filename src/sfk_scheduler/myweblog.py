@@ -2,7 +2,24 @@ import json
 from urllib import error, parse, request
 from uuid import uuid4
 
-from sfk_scheduler.members import normalize_members, parse_api_response
+from sfk_scheduler.members import normalize_members
+
+
+def parse_api_response(payload):
+    if isinstance(payload, dict):
+        if payload.get("errors"):
+            error_messages = "; ".join(
+                item.get("message", "Unknown API error")
+                for item in payload["errors"]
+                if isinstance(item, dict)
+            )
+            raise RuntimeError(f"MyWebLog API error: {error_messages}")
+
+        users = payload.get("users")
+        if isinstance(users, list):
+            return users
+
+    raise ValueError("Could not find a users list in the MyWebLog response.")
 
 MYWEBLOG_API_URL = "https://api.myweblog.se/main/v4/users/"
 DEFAULT_PAGE_SIZE = 500

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from sfk_scheduler.config import load_env_file, get_config_value
 from sfk_scheduler.myweblog import fetch_current_members
-from sfk_scheduler.io import write_members_csv
+from sfk_scheduler.member_io import write_members_csv
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent

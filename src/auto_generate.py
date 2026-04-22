@@ -3,13 +3,13 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from sfk_scheduler.io import get_last_scheduled_date
+from sfk_scheduler.schedule_io import get_last_scheduled_date
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
 SCHEDULE_FILE = DATA_DIR / "schedule.csv"
-GENERATE_SCRIPT = SCRIPT_DIR / "schedule.py"
+GENERATE_SCRIPT = SCRIPT_DIR / "generate_schedule.py"
 THRESHOLD_DAYS = 60
 
 

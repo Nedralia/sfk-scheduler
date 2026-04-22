@@ -6,8 +6,7 @@ from pathlib import Path
 
 from sfk_scheduler.reminder import find_due_reminders
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SCHEDULE_FILE = PROJECT_ROOT / "data" / "schedule.csv"
 
 
