@@ -51,3 +51,18 @@ resource "aws_s3_object" "schedule_csv" {
   etag         = filemd5("${path.module}/../data/schedule.csv")
   content_type = "text/csv"
 }
+
+module "reminder_lambda" {
+  source = "./modules/reminder_lambda"
+
+  function_name        = "sfk-scheduler-weekly-reminder"
+  aws_region           = var.aws_region
+  account_id           = data.aws_caller_identity.current.account_id
+  schedule_bucket_name = aws_s3_bucket.schedule_data.bucket
+  schedule_bucket_arn  = aws_s3_bucket.schedule_data.arn
+  schedule_object_key  = var.schedule_object_key
+  mailgun_api_key      = var.mailgun_api_key
+  mailgun_domain       = var.mailgun_domain
+  log_retention_days   = var.log_retention_days
+  tags                 = local.common_tags
+}

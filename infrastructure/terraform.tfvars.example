@@ -1,1 +1,3 @@
-aws_region = "eu-north-1"
+aws_region     = "eu-north-1"
+mailgun_domain = "mg.example.com"
+# mailgun_api_key = "key-..."  # set via TF_VAR_mailgun_api_key or terraform.tfvars (never commit)

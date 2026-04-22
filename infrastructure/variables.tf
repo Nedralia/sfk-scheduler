@@ -22,6 +22,23 @@ variable "schedule_object_key" {
   default     = "schedule.csv"
 }
 
+variable "mailgun_api_key" {
+  description = "Mailgun API key for sending reminder emails."
+  type        = string
+  sensitive   = true
+}
+
+variable "mailgun_domain" {
+  description = "Mailgun sending domain (e.g. mg.example.com)."
+  type        = string
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch log retention in days for the reminder Lambda."
+  type        = number
+  default     = 14
+}
+
 variable "tags" {
   description = "Additional tags applied to AWS resources."
   type        = map(string)
