@@ -6,6 +6,12 @@ from datetime import datetime
 import boto3
 
 from sfk_scheduler.mailgun import send_email
+from sfk_scheduler.reminder_log import (
+    already_sent,
+    build_log_entry,
+    load_log,
+    write_log,
+)
 
 
 def load_schedule_from_s3():
@@ -56,10 +62,24 @@ def lambda_handler(event, context):
         print(f"No email address for {row['name']} — skipping")
         return {"date": today, "sent": False, "reason": "no_email"}
 
+    bucket = os.environ["SCHEDULE_BUCKET"]
+    log_key = os.environ["REMINDER_LOG_KEY"]
+    s3 = boto3.client("s3")
+
+    log_rows = load_log(s3, bucket, log_key)
+
+    if already_sent(log_rows, today, email):
+        print(f"Reminder already sent to {email} for {today} — skipping")
+        return {"date": today, "sent": False, "reason": "already_sent"}
+
     api_key = os.environ["MAILGUN_API_KEY"]
     domain = os.environ["MAILGUN_DOMAIN"]
 
     send_email(api_key=api_key, domain=domain, to=email, subject=subject, body=body)
+
+    sent_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    log_rows.append(build_log_entry(sent_at=sent_at, week_start=today, name=row["name"], email=email))
+    write_log(s3, bucket, log_key, log_rows)
 
     print(f"Reminder sent to {row['name']} <{email}> for week starting {today}")
     return {"date": today, "sent": True, "recipient": email}

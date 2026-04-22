@@ -45,8 +45,8 @@ resource "aws_iam_role_policy" "lambda_logging" {
   })
 }
 
-resource "aws_iam_role_policy" "lambda_s3_read" {
-  name = "${var.function_name}-s3-read"
+resource "aws_iam_role_policy" "lambda_s3_schedule_read" {
+  name = "${var.function_name}-s3-schedule-read"
   role = aws_iam_role.lambda.id
 
   policy = jsonencode({
@@ -56,6 +56,22 @@ resource "aws_iam_role_policy" "lambda_s3_read" {
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
         Resource = "${var.schedule_bucket_arn}/${var.schedule_object_key}"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_s3_log_readwrite" {
+  name = "${var.function_name}-s3-log-readwrite"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject"]
+        Resource = "${var.schedule_bucket_arn}/${var.reminder_log_key}"
       }
     ]
   })
@@ -81,17 +97,19 @@ resource "aws_lambda_function" "weekly_reminder" {
 
   environment {
     variables = {
-      SCHEDULE_BUCKET = var.schedule_bucket_name
-      SCHEDULE_KEY    = var.schedule_object_key
-      MAILGUN_API_KEY = var.mailgun_api_key
-      MAILGUN_DOMAIN  = var.mailgun_domain
+      SCHEDULE_BUCKET    = var.schedule_bucket_name
+      SCHEDULE_KEY       = var.schedule_object_key
+      REMINDER_LOG_KEY   = var.reminder_log_key
+      MAILGUN_API_KEY    = var.mailgun_api_key
+      MAILGUN_DOMAIN     = var.mailgun_domain
     }
   }
 
   depends_on = [
     aws_cloudwatch_log_group.lambda,
     aws_iam_role_policy.lambda_logging,
-    aws_iam_role_policy.lambda_s3_read,
+    aws_iam_role_policy.lambda_s3_schedule_read,
+    aws_iam_role_policy.lambda_s3_log_readwrite,
   ]
 
   tags = var.tags

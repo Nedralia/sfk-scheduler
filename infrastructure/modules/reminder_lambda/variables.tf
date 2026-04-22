@@ -28,6 +28,12 @@ variable "schedule_object_key" {
   type        = string
 }
 
+variable "reminder_log_key" {
+  description = "S3 object key for the reminder log CSV file."
+  type        = string
+  default     = "reminder_log.csv"
+}
+
 variable "mailgun_api_key" {
   description = "Mailgun API key."
   type        = string

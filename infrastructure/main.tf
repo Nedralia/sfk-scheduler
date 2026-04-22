@@ -61,6 +61,7 @@ module "reminder_lambda" {
   schedule_bucket_name = aws_s3_bucket.schedule_data.bucket
   schedule_bucket_arn  = aws_s3_bucket.schedule_data.arn
   schedule_object_key  = var.schedule_object_key
+  reminder_log_key     = "reminder_log.csv"
   mailgun_api_key      = var.mailgun_api_key
   mailgun_domain       = var.mailgun_domain
   log_retention_days   = var.log_retention_days
