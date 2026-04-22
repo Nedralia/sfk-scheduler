@@ -3,3 +3,9 @@ data/*
 
 # Environment variables
 *.env
+
+# Terraform
+infrastructure/backend.hcl
+infrastructure/.terraform/
+infrastructure/.terraform.lock.hcl
+infrastructure/*.tfplan
