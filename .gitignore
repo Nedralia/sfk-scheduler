@@ -9,3 +9,6 @@ infrastructure/backend.hcl
 infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
 infrastructure/*.tfplan
+
+# Python
+__pycache__/
