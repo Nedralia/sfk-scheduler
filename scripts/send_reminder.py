@@ -1,12 +1,11 @@
 import csv
 import io
 import os
-from pathlib import Path
-import boto3
 from datetime import datetime, timedelta
+from pathlib import Path
 
+from sfk_scheduler.reminder import find_due_reminders
 
-s3 = boto3.client("s3")
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DEFAULT_SCHEDULE_FILE = PROJECT_ROOT / "data" / "schedule.csv"
@@ -17,6 +16,8 @@ def load_schedule_rows():
     object_key = os.environ.get("SCHEDULE_KEY")
 
     if bucket_name and object_key:
+        import boto3
+        s3 = boto3.client("s3")
         response = s3.get_object(Bucket=bucket_name, Key=object_key)
         content = response["Body"].read().decode("utf-8")
         return list(csv.DictReader(io.StringIO(content)))
@@ -27,29 +28,10 @@ def load_schedule_rows():
         return list(csv.DictReader(f))
 
 
-def build_reminder(row):
-    return {
-        "name": row["name"],
-        "email": row.get("email", ""),
-        "week_start": row["week_start"],
-        "week_number": row["week_number"],
-        "subject": "Club House Cleaning Reminder",
-        "body": (
-            f"Hello {row['name']},\n\n"
-            "Reminder that you are scheduled to clean the club house on:\n\n"
-            f"{row['week_start']} (Week {row['week_number']})\n\n"
-            "Thank you!"
-        ),
-    }
-
-
 def lambda_handler(event, context):
     target_date = (datetime.utcnow() + timedelta(days=3)).strftime("%Y-%m-%d")
-    due_reminders = []
-
-    for row in load_schedule_rows():
-        if row["week_start"] == target_date:
-            due_reminders.append(build_reminder(row))
+    rows = load_schedule_rows()
+    due_reminders = find_due_reminders(rows, target_date)
 
     for reminder in due_reminders:
         print(

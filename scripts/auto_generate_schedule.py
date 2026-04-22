@@ -1,9 +1,9 @@
-import csv
-from datetime import datetime, timedelta
-from pathlib import Path
 import subprocess
 import sys
+from datetime import datetime, timedelta
+from pathlib import Path
 
+from sfk_scheduler.io import get_last_scheduled_date
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -13,21 +13,18 @@ GENERATE_SCRIPT = SCRIPT_DIR / "schedule.py"
 THRESHOLD_DAYS = 60
 
 
-def get_last_scheduled_date():
-    try:
-        with open(SCHEDULE_FILE, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            dates = [datetime.fromisoformat(row["week_start"]) for row in reader]
-    except FileNotFoundError:
-        return None
+def compute_end_date(today):
+    return today.replace(year=today.year + 1) - timedelta(days=1)
 
-    return max(dates) if dates else None
+
+def needs_extension(last_date, today, threshold_days=THRESHOLD_DAYS):
+    return (last_date - today).days <= threshold_days
 
 
 def main():
     today = datetime.today()
-    end_date = (today.replace(year=today.year + 1) - timedelta(days=1)).strftime("%Y-%m-%d")
-    last_date = get_last_scheduled_date()
+    end_date = compute_end_date(today).strftime("%Y-%m-%d")
+    last_date = get_last_scheduled_date(SCHEDULE_FILE)
 
     if not last_date:
         print("No schedule found. Generating new schedule.")
@@ -47,7 +44,7 @@ def main():
     print(f"Last scheduled week: {last_date.date()}")
     print(f"Days remaining: {remaining_days}")
 
-    if remaining_days <= THRESHOLD_DAYS:
+    if needs_extension(last_date, today):
         next_start = (last_date + timedelta(weeks=1)).strftime("%Y-%m-%d")
         print(f"⚠ Schedule nearing end → extending from {next_start} to {end_date}")
 

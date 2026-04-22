@@ -1,10 +1,11 @@
-import csv
 import json
 import os
 from pathlib import Path
 from urllib import error, parse, request
 from uuid import uuid4
 
+from sfk_scheduler.members import parse_api_response, normalize_members
+from sfk_scheduler.io import write_members_csv
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -44,57 +45,6 @@ def build_headers(token, request_id):
 		"Content-Type": "application/json",
 		"Request-Id": request_id,
 	}
-
-
-def parse_api_response(payload):
-	if isinstance(payload, dict):
-		if payload.get("errors"):
-			error_messages = "; ".join(
-				item.get("message", "Unknown API error")
-				for item in payload["errors"]
-				if isinstance(item, dict)
-			)
-			raise RuntimeError(f"MyWebLog API error: {error_messages}")
-
-		users = payload.get("users")
-		if isinstance(users, list):
-			return users
-
-	raise ValueError("Could not find a users list in the MyWebLog response.")
-
-
-def normalize_member_name(member):
-	first_name = str(
-		member.get("first_name")
-		or member.get("firstname")
-		or member.get("fornamn")
-		or ""
-	).strip()
-	last_name = str(
-		member.get("last_name")
-		or member.get("lastname")
-		or member.get("efternamn")
-		or ""
-	).strip()
-	full_name = f"{first_name} {last_name}".strip()
-
-	if not full_name:
-		full_name = str(member.get("full_name") or member.get("name") or "").strip()
-
-	if not full_name:
-		return None
-
-	return full_name
-
-
-def normalize_member_number(member):
-	raw = (
-		member.get("member_number")
-		or member.get("membership_number")
-		or member.get("member_id")
-		or ""
-	)
-	return str(raw).strip()
 
 
 def build_users_url(offset):
@@ -151,31 +101,7 @@ def fetch_current_members(token):
 
 		offset += DEFAULT_PAGE_SIZE
 
-	seen_names = {}
-	for member in all_users:
-		name = normalize_member_name(member)
-		if name and name not in seen_names:
-			seen_names[name] = normalize_member_number(member)
-
-	normalized_members = sorted(
-		[(name, number) for name, number in seen_names.items()],
-		key=lambda x: x[0],
-	)
-
-	if not normalized_members:
-		raise RuntimeError("MyWebLog returned no members.")
-
-	return normalized_members
-
-
-def write_members_csv(members, output_file):
-	output_file.parent.mkdir(parents=True, exist_ok=True)
-
-	with open(output_file, "w", newline="", encoding="utf-8") as file_handle:
-		writer = csv.writer(file_handle)
-		writer.writerow(["member_number", "name"])
-		for name, member_number in members:
-			writer.writerow([member_number, name])
+	return normalize_members(all_users)
 
 
 def main():
