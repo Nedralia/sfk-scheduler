@@ -12,9 +12,16 @@ DEFAULT_PREVIOUS_SCHEDULE_FILE = DATA_DIR / "previous_schedule.csv"
 DEFAULT_OUTPUT_FILE = DATA_DIR / "schedule.csv"
 
 
-def load_names(filename):
+def load_members(filename):
     with open(filename, newline='', encoding="utf-8") as f:
-        return [row["name"].strip() for row in csv.DictReader(f)]
+        return [
+            (row["name"].strip(), row.get("member_number", "").strip())
+            for row in csv.DictReader(f)
+        ]
+
+
+def load_names(filename):
+    return [name for name, _ in load_members(filename)]
 
 
 def load_previous_schedule(filename):
@@ -38,7 +45,13 @@ def align_to_monday(date):
 
 
 def generate_schedule(start_date, members, excluded, already_assigned):
-    available = list(set(members) - set(excluded) - set(already_assigned))
+    excluded_names = set(excluded)
+    already_assigned_names = set(already_assigned)
+    available = [
+        (name, number)
+        for name, number in members
+        if name not in excluded_names and name not in already_assigned_names
+    ]
 
     if not available:
         raise ValueError("No available members left to schedule.")
@@ -48,13 +61,14 @@ def generate_schedule(start_date, members, excluded, already_assigned):
     schedule = []
     date = align_to_monday(start_date)
 
-    for person in available:
+    for name, member_number in available:
         iso_year, week_number, _ = date.isocalendar()
         schedule.append((
             date.strftime("%Y-%m-%d"),
             week_number,
             iso_year,
-            person
+            name,
+            member_number,
         ))
         date += timedelta(weeks=1)
 
@@ -66,7 +80,7 @@ def save_csv(schedule, filename):
 
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["week_start", "week_number", "year", "name"])
+        writer.writerow(["week_start", "week_number", "year", "name", "member_number"])
         writer.writerows(schedule)
 
 
@@ -110,7 +124,7 @@ def main():
     output_file = args.output
     previous_schedule_file = args.previous_schedule
 
-    members = load_names(DATA_DIR / "members.csv")
+    members = load_members(DATA_DIR / "members.csv")
     excluded = load_names(DATA_DIR / "excluded.csv")
 
     if args.force_reset:

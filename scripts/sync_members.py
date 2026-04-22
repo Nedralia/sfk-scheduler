@@ -87,6 +87,16 @@ def normalize_member_name(member):
 	return full_name
 
 
+def normalize_member_number(member):
+	raw = (
+		member.get("member_number")
+		or member.get("membership_number")
+		or member.get("member_id")
+		or ""
+	)
+	return str(raw).strip()
+
+
 def build_users_url(offset):
 	query = parse.urlencode(
 		{
@@ -141,12 +151,15 @@ def fetch_current_members(token):
 
 		offset += DEFAULT_PAGE_SIZE
 
+	seen_names = {}
+	for member in all_users:
+		name = normalize_member_name(member)
+		if name and name not in seen_names:
+			seen_names[name] = normalize_member_number(member)
+
 	normalized_members = sorted(
-		{
-			member_name
-			for member_name in (normalize_member_name(member) for member in all_users)
-			if member_name
-		}
+		[(name, number) for name, number in seen_names.items()],
+		key=lambda x: x[0],
 	)
 
 	if not normalized_members:
@@ -160,9 +173,9 @@ def write_members_csv(members, output_file):
 
 	with open(output_file, "w", newline="", encoding="utf-8") as file_handle:
 		writer = csv.writer(file_handle)
-		writer.writerow(["name"])
-		for member in members:
-			writer.writerow([member])
+		writer.writerow(["member_number", "name"])
+		for name, member_number in members:
+			writer.writerow([member_number, name])
 
 
 def main():

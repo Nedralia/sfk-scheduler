@@ -4,7 +4,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data"
-SCHEDULE_HEADER = ["week_start", "week_number", "year", "name"]
+SCHEDULE_HEADER = ["week_start", "week_number", "year", "name", "member_number"]
 
 def reset_csv(file_path):
   with open(file_path, "w", newline="", encoding="utf-8") as file_handle:
