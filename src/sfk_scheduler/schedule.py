@@ -48,6 +48,7 @@ def generate_schedule(start_date, members, excluded, already_assigned, end_date=
             iso_year,
             name,
             member_number,
+            "",
         ))
         date += timedelta(weeks=1)
 

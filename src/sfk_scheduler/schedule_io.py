@@ -8,6 +8,9 @@ def load_previous_schedule(filename, before_date):
         with open(filename, newline="", encoding="utf-8") as f:
             data = list(csv.DictReader(f))
 
+        for row in data:
+            row["status"] = row.get("status") or ""
+
         if not data:
             return [], set()
 
@@ -26,7 +29,7 @@ def save_schedule_csv(kept_rows, schedule, filename):
 
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["week_start", "week_number", "year", "name", "member_number"])
+        writer.writerow(["week_start", "week_number", "year", "name", "member_number", "status"])
         for row in kept_rows:
             writer.writerow([
                 row["week_start"],
@@ -34,6 +37,7 @@ def save_schedule_csv(kept_rows, schedule, filename):
                 row["year"],
                 row["name"],
                 row.get("member_number", ""),
+                row.get("status", ""),
             ])
         writer.writerows(schedule)
 

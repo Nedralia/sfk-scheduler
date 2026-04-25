@@ -144,7 +144,7 @@ body {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  min-width: 820px;
 }
 
 th,
@@ -159,4 +159,14 @@ th {
   background: var(--surface-alt);
   position: sticky;
   top: 0;
+}
+
+.status.completed {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+  font-size: 0.82rem;
 }

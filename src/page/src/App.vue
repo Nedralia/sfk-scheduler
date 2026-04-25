@@ -7,6 +7,7 @@ type ScheduleRow = {
   year: string;
   name: string;
   member_number?: string;
+  status?: string;
 };
 
 const rows = ref<ScheduleRow[]>([]);
@@ -57,6 +58,48 @@ function safeLocaleCompare(left: unknown, right: unknown): number {
   return asString(left).localeCompare(asString(right));
 }
 
+function isCompletedStatus(status: unknown): boolean {
+  const normalized = asString(status).trim().toLowerCase();
+  return ["completed", "done", "true", "1", "yes", "y", "checked", "check", "ok", "✓", "✔"].includes(
+    normalized,
+  );
+}
+
+function parseLocalDate(dateInput: string): Date | null {
+  if (!dateInput) {
+    return null;
+  }
+
+  // Parse as local date to avoid timezone shifts from ISO parsing.
+  const parts = dateInput.split("-").map((part) => Number(part));
+  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) {
+    return null;
+  }
+
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function isPastDue(row: ScheduleRow): boolean {
+  if (isCompletedStatus(row.status)) {
+    return false;
+  }
+
+  const weekStartDate = parseLocalDate(row.week_start);
+  if (!weekStartDate) {
+    return false;
+  }
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return now > weekStartDate;
+}
+
 function parseCsv(csvText: string): ScheduleRow[] {
   const lines = csvText
     .split(/\r?\n/)
@@ -68,6 +111,12 @@ function parseCsv(csvText: string): ScheduleRow[] {
   }
 
   const headers = lines[0].split(",").map((header) => header.trim());
+  const requiredHeaders = ["week_start", "week_number", "year", "name"];
+  const hasRequiredHeaders = requiredHeaders.every((header) => headers.includes(header));
+  if (!hasRequiredHeaders) {
+    return [];
+  }
+
   const parsedRows: ScheduleRow[] = [];
 
   for (const line of lines.slice(1)) {
@@ -79,6 +128,7 @@ function parseCsv(csvText: string): ScheduleRow[] {
       year: asString(row.year),
       name: asString(row.name),
       member_number: asString(row.member_number),
+      status: asString(row.status),
     });
   }
 
@@ -86,7 +136,7 @@ function parseCsv(csvText: string): ScheduleRow[] {
 }
 
 async function fetchScheduleData() {
-  const candidates = ["/schedule", "/schedule.csv"];
+  const candidates = ["/data/schedule.csv", "/schedule.csv", "/data/schedule", "/schedule"];
 
   for (const candidate of candidates) {
     const response = await fetch(candidate, { cache: "no-store" });
@@ -102,7 +152,7 @@ async function fetchScheduleData() {
     }
   }
 
-  throw new Error("No schedule data could be loaded from /data/schedule.");
+  throw new Error("No schedule data could be loaded from /data/schedule.csv.");
 }
 
 onMounted(async () => {
@@ -121,7 +171,6 @@ onMounted(async () => {
   <main class="page">
     <section class="hero">
       <h1>SFK Cleaning Schedule</h1>
-      <p>Landing page generated from data in <code>/data/schedule</code>.</p>
     </section>
 
     <section v-if="loading" class="panel">
@@ -204,6 +253,7 @@ onMounted(async () => {
                 <th>Year</th>
                 <th>Name</th>
                 <th>Member #</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -213,6 +263,12 @@ onMounted(async () => {
                 <td>{{ row.year }}</td>
                 <td>{{ row.name }}</td>
                 <td>{{ row.member_number || "-" }}</td>
+                <td>
+                  <span v-if="isCompletedStatus(row.status)" class="status-mark status-done" aria-label="Completed"
+                    >✓</span
+                  >
+                  <span v-else-if="isPastDue(row)" class="status-mark status-not-done" aria-label="Overdue">✗</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -221,3 +277,17 @@ onMounted(async () => {
     </template>
   </main>
 </template>
+
+<style scoped>
+.status-mark {
+  font-weight: 700;
+}
+
+.status-done {
+  color: #1f9d55;
+}
+
+.status-not-done {
+  color: #d93025;
+}
+</style>
