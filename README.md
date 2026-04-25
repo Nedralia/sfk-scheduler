@@ -142,8 +142,8 @@ Used to continue scheduling within the same year without duplicates.
 Format:
 
 ``` csv
-week_start,week_number,year,name
-2026-01-05,2,2026,Alice
+week_start,week_number,year,name,member_number,status
+2026-01-05,2,2026,Alice,101,
 ```
 
 ------------------------------------------------------------------------
@@ -155,8 +155,8 @@ Generated output file containing the cleaning schedule.
 Format:
 
 ``` csv
-week_start,week_number,year,name
-2026-02-16,8,2026,Bob
+week_start,week_number,year,name,member_number,status
+2026-02-16,8,2026,Bob,102,completed
 ```
 
 ------------------------------------------------------------------------
