@@ -22,6 +22,24 @@ variable "schedule_object_key" {
   default     = "schedule.csv"
 }
 
+variable "website_bucket_name_prefix" {
+  description = "Prefix used to build the S3 bucket name that stores static web assets."
+  type        = string
+  default     = "sfk-scheduler-web"
+}
+
+variable "website_index_document" {
+  description = "Index document served by S3 website hosting."
+  type        = string
+  default     = "index.html"
+}
+
+variable "website_error_document" {
+  description = "Error document served by S3 website hosting."
+  type        = string
+  default     = "index.html"
+}
+
 variable "mailgun_api_key" {
   description = "Mailgun API key for sending reminder emails."
   type        = string
