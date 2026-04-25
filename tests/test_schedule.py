@@ -33,12 +33,13 @@ def test_generate_schedule_returns_one_row_per_member_without_end_date():
 def test_generate_schedule_row_has_expected_fields():
     start = datetime(2026, 4, 20)
     result = generate_schedule(start, MEMBERS, excluded=[], already_assigned=set())
-    week_start, week_number, year, name, member_number = result[0]
+    week_start, week_number, year, name, member_number, status = result[0]
     assert week_start == "2026-04-20"
     assert isinstance(week_number, int)
     assert isinstance(year, int)
     assert name in [m[0] for m in MEMBERS]
     assert member_number in [m[1] for m in MEMBERS]
+    assert status == ""
 
 
 def test_generate_schedule_weeks_advance_by_one():

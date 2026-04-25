@@ -8,12 +8,12 @@ from sfk_scheduler.schedule_io import (
     get_last_scheduled_date,
 )
 
-HEADER = ["week_start", "week_number", "year", "name", "member_number"]
+HEADER = ["week_start", "week_number", "year", "name", "member_number", "status"]
 
 ROWS = [
-    {"week_start": "2026-01-05", "week_number": "2", "year": "2026", "name": "Anna Svensson", "member_number": "101"},
-    {"week_start": "2026-01-12", "week_number": "3", "year": "2026", "name": "Bo Lindqvist", "member_number": "102"},
-    {"week_start": "2026-01-19", "week_number": "4", "year": "2026", "name": "Carl Berg", "member_number": "103"},
+    {"week_start": "2026-01-05", "week_number": "2", "year": "2026", "name": "Anna Svensson", "member_number": "101", "status": ""},
+    {"week_start": "2026-01-12", "week_number": "3", "year": "2026", "name": "Bo Lindqvist", "member_number": "102", "status": "completed"},
+    {"week_start": "2026-01-19", "week_number": "4", "year": "2026", "name": "Carl Berg", "member_number": "103", "status": ""},
 ]
 
 
@@ -72,7 +72,7 @@ def test_save_schedule_csv_writes_header(tmp_path):
     f = tmp_path / "schedule.csv"
     save_schedule_csv([], [], f)
     lines = f.read_text().splitlines()
-    assert lines[0] == "week_start,week_number,year,name,member_number"
+    assert lines[0] == "week_start,week_number,year,name,member_number,status"
 
 
 def test_save_schedule_csv_writes_kept_rows(tmp_path):
@@ -84,7 +84,7 @@ def test_save_schedule_csv_writes_kept_rows(tmp_path):
 
 def test_save_schedule_csv_appends_new_schedule_rows(tmp_path):
     f = tmp_path / "schedule.csv"
-    new_row = ("2026-01-26", 5, 2026, "Dana Eriksson", "104")
+    new_row = ("2026-01-26", 5, 2026, "Dana Eriksson", "104", "")
     save_schedule_csv([], [new_row], f)
     lines = f.read_text().splitlines()
     assert "Dana Eriksson" in lines[1]
@@ -98,11 +98,18 @@ def test_save_schedule_csv_creates_parent_directories(tmp_path):
 
 def test_save_schedule_csv_kept_rows_before_new_rows(tmp_path):
     f = tmp_path / "schedule.csv"
-    new_row = ("2026-01-26", 5, 2026, "Dana Eriksson", "104")
+    new_row = ("2026-01-26", 5, 2026, "Dana Eriksson", "104", "")
     save_schedule_csv(ROWS[:1], [new_row], f)
     lines = f.read_text().splitlines()
     assert "Anna Svensson" in lines[1]
     assert "Dana Eriksson" in lines[2]
+
+
+def test_save_schedule_csv_preserves_status_from_kept_rows(tmp_path):
+    f = tmp_path / "schedule.csv"
+    save_schedule_csv(ROWS[:2], [], f)
+    lines = f.read_text().splitlines()
+    assert lines[2].endswith(",completed")
 
 
 # --- get_last_scheduled_date ---
