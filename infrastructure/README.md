@@ -1,8 +1,10 @@
 # AWS Terraform Setup
 
-This folder provisions the AWS infrastructure for reminder processing:
+This folder provisions the AWS infrastructure for reminder processing and static site hosting:
 
 - An S3 bucket that stores `schedule.csv`
+- An S3 bucket for the static website assets
+- A CloudFront distribution in front of the website bucket
 - A Lambda function based on `scripts/send_reminder.py`
 - IAM permissions for CloudWatch Logs and S3 reads
 - A daily EventBridge trigger for the Lambda
@@ -28,5 +30,6 @@ terraform -chdir=infrastructure apply
 
 - Terraform uploads the current `data/schedule.csv` into S3 during apply.
 - If the schedule changes locally, run `terraform -chdir=infrastructure apply` again to push the updated CSV.
+- Deploy the web app assets to the website bucket, then invalidate the CloudFront distribution if you need the new content immediately.
 - The Lambda reads due reminders and logs the generated reminder payloads.
 - If you wire in another email provider later, `scripts/send_reminder.py` is the place to add that integration.
