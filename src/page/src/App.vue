@@ -30,17 +30,6 @@ const assignmentsPerYear = computed(() => {
     .map(([year, count]) => ({ year, count }));
 });
 
-const topMembers = computed(() => {
-  const counts = new Map<string, number>();
-  for (const row of rows.value) {
-    counts.set(row.name, (counts.get(row.name) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((left, right) => right.count - left.count || safeLocaleCompare(left.name, right.name))
-    .slice(0, 8);
-});
-
 const upcomingRows = computed(() => {
   const today = new Date().toISOString().slice(0, 10);
   return rows.value.filter((row) => row.week_start >= today).slice(0, 10);
@@ -227,18 +216,6 @@ onMounted(async () => {
               <strong>{{ row.name }}</strong>
             </li>
           </ul>
-        </article>
-      </section>
-
-      <section class="two-column">
-        <article class="panel">
-          <h2>Most Frequent Assignments</h2>
-          <ol class="member-list">
-            <li v-for="member in topMembers" :key="member.name">
-              <span>{{ member.name }}</span>
-              <strong>{{ member.count }}</strong>
-            </li>
-          </ol>
         </article>
       </section>
 
