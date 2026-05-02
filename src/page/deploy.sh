@@ -8,8 +8,8 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-BUCKET_NAME=$1
-DISTRIBUTION_ID=$2
+BUCKET_NAME=$1 # sfk-scheduler-web-992382661713-eu-north-1
+DISTRIBUTION_ID=$2 # EBDGRJ1SFCCH0
 
 # Sync the /dist directory to the S3 bucket
 aws s3 sync ./dist s3://$BUCKET_NAME --delete
@@ -18,3 +18,5 @@ aws s3 sync ./dist s3://$BUCKET_NAME --delete
 # aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
 
 echo "Deployment complete. S3 bucket: $BUCKET_NAME, CloudFront distribution: $DISTRIBUTION_ID"
+
+
