@@ -18,5 +18,3 @@ aws s3 sync ./dist s3://$BUCKET_NAME --delete
 aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
 
 echo "Deployment complete. S3 bucket: $BUCKET_NAME, CloudFront distribution: $DISTRIBUTION_ID"
-
-
