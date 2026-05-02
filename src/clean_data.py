@@ -14,13 +14,8 @@ def reset_csv(file_path):
 
 def main():
   schedule_file = DATA_DIR / "schedule.csv"
-  previous_schedule_file = DATA_DIR / "previous_schedule.csv"
-
   reset_csv(schedule_file)
-  reset_csv(previous_schedule_file)
-
   print(f"Cleared: {schedule_file}")
-  print(f"Cleared: {previous_schedule_file}")
 
 
 if __name__ == "__main__":
