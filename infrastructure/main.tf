@@ -1,10 +1,8 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  schedule_bucket_name           = "${var.schedule_bucket_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}"
-  website_bucket_name            = "${var.website_bucket_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}"
-  website_hosted_zone_id         = var.website_hosted_zone_id == null ? "" : trimspace(var.website_hosted_zone_id)
-  website_dns_automation_enabled = local.website_hosted_zone_id != ""
+  schedule_bucket_name = "${var.schedule_bucket_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}"
+  website_bucket_name  = "${var.website_bucket_name_prefix}-${data.aws_caller_identity.current.account_id}-${var.aws_region}"
   common_tags = merge(
     {
       Project     = "sfk-scheduler"
@@ -95,50 +93,12 @@ resource "aws_cloudfront_origin_access_control" "sfk_website" {
   signing_protocol                  = "sigv4"
 }
 
-resource "aws_acm_certificate" "sfk_website" {
-  provider          = aws.us_east_1
-  domain_name       = var.website_domain_name
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  tags = local.common_tags
-}
-
-resource "aws_route53_record" "sfk_website_certificate_validation" {
-  for_each = local.website_dns_automation_enabled ? {
-    for option in aws_acm_certificate.sfk_website.domain_validation_options : option.domain_name => {
-      name   = option.resource_record_name
-      record = option.resource_record_value
-      type   = option.resource_record_type
-    }
-  } : {}
-
-  allow_overwrite = true
-  zone_id         = local.website_hosted_zone_id
-  name            = each.value.name
-  type            = each.value.type
-  ttl             = 60
-  records         = [each.value.record]
-}
-
-resource "aws_acm_certificate_validation" "sfk_website" {
-  provider = aws.us_east_1
-  count    = local.website_dns_automation_enabled ? 1 : 0
-
-  certificate_arn         = aws_acm_certificate.sfk_website.arn
-  validation_record_fqdns = [for record in aws_route53_record.sfk_website_certificate_validation : record.fqdn]
-}
-
 resource "aws_cloudfront_distribution" "sfk_website" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = var.website_index_document
   comment             = "CloudFront distribution for the SFK website"
   price_class         = var.website_cloudfront_price_class
-  aliases             = var.website_activate_custom_domain ? [var.website_domain_name] : []
 
   origin {
     domain_name              = aws_s3_bucket.sfk_website.bucket_regional_domain_name
@@ -183,41 +143,10 @@ resource "aws_cloudfront_distribution" "sfk_website" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = !var.website_activate_custom_domain
-    acm_certificate_arn            = var.website_activate_custom_domain ? aws_acm_certificate.sfk_website.arn : null
-    ssl_support_method             = var.website_activate_custom_domain ? "sni-only" : null
-    minimum_protocol_version       = var.website_activate_custom_domain ? "TLSv1.2_2021" : null
+    cloudfront_default_certificate = true
   }
 
   tags = local.common_tags
-}
-
-resource "aws_route53_record" "sfk_website_cloudfront_alias_ipv4" {
-  count = local.website_dns_automation_enabled && var.website_activate_custom_domain ? 1 : 0
-
-  zone_id = local.website_hosted_zone_id
-  name    = var.website_domain_name
-  type    = "A"
-
-  alias {
-    name                   = aws_cloudfront_distribution.sfk_website.domain_name
-    zone_id                = aws_cloudfront_distribution.sfk_website.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
-resource "aws_route53_record" "sfk_website_cloudfront_alias_ipv6" {
-  count = local.website_dns_automation_enabled && var.website_activate_custom_domain ? 1 : 0
-
-  zone_id = local.website_hosted_zone_id
-  name    = var.website_domain_name
-  type    = "AAAA"
-
-  alias {
-    name                   = aws_cloudfront_distribution.sfk_website.domain_name
-    zone_id                = aws_cloudfront_distribution.sfk_website.hosted_zone_id
-    evaluate_target_health = false
-  }
 }
 
 resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
