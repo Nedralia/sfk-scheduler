@@ -15,15 +15,15 @@ terraform {
 
   # S3 bucket must exist before running terraform init.
   backend "s3" {
-    bucket       = "sfk-scheduler-tfstate"
-    key          = "sfk-scheduler/terraform.tfstate"
-    region       = "eu-north-1"
-    encrypt      = true
-    profile     = "nedralia"
+    bucket  = "sfk-scheduler-tfstate"
+    key     = "sfk-scheduler/terraform.tfstate"
+    region  = "eu-north-1"
+    encrypt = true
+    profile = "nedralia"
   }
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
   profile = "nedralia"
 }

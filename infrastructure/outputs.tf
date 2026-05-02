@@ -13,9 +13,14 @@ output "website_bucket_name" {
   value       = aws_s3_bucket.sfk_website.bucket
 }
 
-output "website_bucket_website_endpoint" {
-  description = "S3 website endpoint for the hosted web page."
-  value       = aws_s3_bucket_website_configuration.sfk_website.website_endpoint
+output "website_cloudfront_distribution_id" {
+  description = "CloudFront distribution ID serving the website bucket."
+  value       = aws_cloudfront_distribution.sfk_website.id
+}
+
+output "website_cloudfront_domain_name" {
+  description = "CloudFront domain name for the hosted web page."
+  value       = aws_cloudfront_distribution.sfk_website.domain_name
 }
 
 # output "reminder_lambda_function_name" {

@@ -40,6 +40,12 @@ variable "website_error_document" {
   default     = "index.html"
 }
 
+variable "website_cloudfront_price_class" {
+  description = "CloudFront price class used for the website distribution."
+  type        = string
+  default     = "PriceClass_100"
+}
+
 variable "mailgun_api_key" {
   description = "Mailgun API key for sending reminder emails."
   type        = string
