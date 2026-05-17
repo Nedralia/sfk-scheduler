@@ -180,9 +180,13 @@ module "cognito" {
 
   user_pool_name = "sfk-scheduler-${var.environment}"
   domain_prefix  = var.cognito_domain_prefix
-  callback_urls  = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}"]
-  logout_urls    = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}"]
-  tags           = local.common_tags
+
+  # SPA hosted on CloudFront — all unmatched paths are served by index.html,
+  # so the application router handles /auth/callback and /auth/logout client-side.
+  callback_urls = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}/auth/callback"]
+  logout_urls   = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}/auth/logout"]
+
+  tags = local.common_tags
 }
 
 # module "reminder_lambda" {

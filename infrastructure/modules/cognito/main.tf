@@ -58,7 +58,9 @@ resource "aws_cognito_user_pool" "this" {
   tags = var.tags
 }
 
-# Public SPA client — authorization code flow with PKCE, no client secret
+# Public SPA client — authorization code flow with PKCE, no client secret.
+# Cognito enforces PKCE for public clients (generate_secret = false) by
+# requiring code_challenge / code_challenge_method in the authorization request.
 resource "aws_cognito_user_pool_client" "web" {
   name         = "${var.user_pool_name}-web-client"
   user_pool_id = aws_cognito_user_pool.this.id
@@ -87,6 +89,9 @@ resource "aws_cognito_user_pool_client" "web" {
   # Prevent user-existence enumeration attacks
   prevent_user_existence_errors = "ENABLED"
 
+  # Intentionally browser-only auth flows: SRP for sign-in and token refresh.
+  # ALLOW_USER_PASSWORD_AUTH is omitted to prevent plaintext password flows
+  # that would expose credentials to the SDK/CLI transport layer.
   explicit_auth_flows = [
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",

@@ -8,6 +8,18 @@ variable "domain_prefix" {
   type        = string
 }
 
+variable "callback_path" {
+  description = "URL path appended to each callback URL origin (e.g. /auth/callback). For SPAs where the router handles all paths, use \"/\"."
+  type        = string
+  default     = "/"
+}
+
+variable "logout_path" {
+  description = "URL path appended to each logout URL origin (e.g. /auth/logout). For SPAs where the router handles all paths, use \"/\"."
+  type        = string
+  default     = "/"
+}
+
 variable "callback_urls" {
   description = "Allowed OAuth 2.0 callback (redirect) URLs for the web app client."
   type        = list(string)
