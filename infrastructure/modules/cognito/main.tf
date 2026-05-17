@@ -14,7 +14,7 @@ resource "aws_cognito_user_pool" "this" {
     require_uppercase                = true
     require_numbers                  = true
     require_symbols                  = true
-    temporary_password_validity_days = 7
+    temporary_password_validity_days = 90
   }
 
   # MFA (TOTP software token)
