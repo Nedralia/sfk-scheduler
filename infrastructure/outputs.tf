@@ -23,6 +23,21 @@ output "website_cloudfront_domain_name" {
   value       = aws_cloudfront_distribution.sfk_website.domain_name
 }
 
+output "cognito_user_pool_id" {
+  description = "ID of the Cognito User Pool."
+  value       = module.cognito.user_pool_id
+}
+
+output "cognito_web_client_id" {
+  description = "ID of the Cognito web app client."
+  value       = module.cognito.web_client_id
+}
+
+output "cognito_hosted_ui_domain" {
+  description = "Cognito hosted-UI base URL."
+  value       = module.cognito.hosted_ui_domain
+}
+
 # output "reminder_lambda_function_name" {
 #   description = "Name of the weekly reminder Lambda function."
 #   value       = module.reminder_lambda.function_name

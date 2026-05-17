@@ -175,6 +175,20 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
   })
 }
 
+module "cognito" {
+  source = "./modules/cognito"
+
+  user_pool_name = "sfk-scheduler-${var.environment}"
+  domain_prefix  = var.cognito_domain_prefix
+
+  # SPA hosted on CloudFront — all unmatched paths are served by index.html,
+  # so the application router handles /auth/callback and /auth/logout client-side.
+  callback_urls = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}/auth/callback"]
+  logout_urls   = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}/auth/logout"]
+
+  tags = local.common_tags
+}
+
 # module "reminder_lambda" {
 #   source = "./modules/reminder_lambda"
 

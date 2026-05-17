@@ -63,6 +63,11 @@ variable "log_retention_days" {
   default     = 14
 }
 
+variable "cognito_domain_prefix" {
+  description = "Globally unique prefix for the Cognito hosted-UI domain (e.g. sfk-scheduler-prod)."
+  type        = string
+}
+
 variable "tags" {
   description = "Additional tags applied to AWS resources."
   type        = map(string)
