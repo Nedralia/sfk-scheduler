@@ -1,3 +1,4 @@
-aws_region     = "eu-north-1"
-mailgun_domain = "mg.example.com"
+aws_region            = "eu-north-1"
+mailgun_domain        = "mg.example.com"
+cognito_domain_prefix = "sfk-scheduler-prod"  # must be globally unique across all AWS accounts
 # mailgun_api_key = "key-..."  # set via TF_VAR_mailgun_api_key or terraform.tfvars (never commit)

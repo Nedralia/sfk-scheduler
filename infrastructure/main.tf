@@ -175,6 +175,16 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
   })
 }
 
+module "cognito" {
+  source = "./modules/cognito"
+
+  user_pool_name = "sfk-scheduler-${var.environment}"
+  domain_prefix  = var.cognito_domain_prefix
+  callback_urls  = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}"]
+  logout_urls    = ["https://${aws_cloudfront_distribution.sfk_website.domain_name}"]
+  tags           = local.common_tags
+}
+
 # module "reminder_lambda" {
 #   source = "./modules/reminder_lambda"
 
