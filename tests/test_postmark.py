@@ -49,7 +49,7 @@ def test_service_send_email_includes_headers_and_payload():
         req = mock_urlopen.call_args[0][0]
 
     assert req.get_header("Accept") == "application/json"
-    assert req.get_header("Content-type") == "application/json"
+    assert req.get_header("Content-Type") == "application/json" or req.get_header("Content-type") == "application/json"
     assert req.get_header("X-postmark-server-token") == SERVER_TOKEN
     payload = json.loads(req.data.decode("utf-8"))
     assert payload["From"] == FROM_EMAIL

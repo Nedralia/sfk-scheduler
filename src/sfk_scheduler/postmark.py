@@ -24,7 +24,7 @@ class PostmarkEmailService:
         return cls(
             server_token=os.environ["POSTMARK_SERVER_TOKEN"],
             from_email=os.environ["POSTMARK_FROM_EMAIL"],
-            message_stream=message_stream or None,
+            message_stream=message_stream if message_stream else None,
         )
 
     def send_email(self, to, subject, body):
