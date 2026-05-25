@@ -233,6 +233,12 @@ terraform -chdir=infrastructure plan
 terraform -chdir=infrastructure apply
 ```
 
+Required reminder-email variables:
+
+-   `postmark_from_email` in `infrastructure/terraform.tfvars`
+-   `TF_VAR_postmark_server_token` as an environment variable before running Terraform
+-   Optional: `postmark_message_stream` in `infrastructure/terraform.tfvars` (defaults to Postmark's default stream)
+
 ------------------------------------------------------------------------
 
 ## Version control

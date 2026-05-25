@@ -34,15 +34,21 @@ variable "reminder_log_key" {
   default     = "reminder_log.csv"
 }
 
-variable "mailgun_api_key" {
-  description = "Mailgun API key."
+variable "postmark_server_token" {
+  description = "Postmark server token."
   type        = string
   sensitive   = true
 }
 
-variable "mailgun_domain" {
-  description = "Mailgun sending domain (e.g. mg.example.com)."
+variable "postmark_from_email" {
+  description = "Postmark sender email address (e.g. scheduler@example.com)."
   type        = string
+}
+
+variable "postmark_message_stream" {
+  description = "Optional Postmark message stream."
+  type        = string
+  default     = null
 }
 
 variable "log_retention_days" {

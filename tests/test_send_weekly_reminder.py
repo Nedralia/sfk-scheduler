@@ -71,8 +71,8 @@ def _env(monkeypatch):
     monkeypatch.setenv("SCHEDULE_BUCKET", "test-bucket")
     monkeypatch.setenv("SCHEDULE_KEY", "schedule.csv")
     monkeypatch.setenv("REMINDER_LOG_KEY", "reminder_log.csv")
-    monkeypatch.setenv("MAILGUN_API_KEY", "key-test")
-    monkeypatch.setenv("MAILGUN_DOMAIN", "mg.example.com")
+    monkeypatch.setenv("POSTMARK_SERVER_TOKEN", "pm-token")
+    monkeypatch.setenv("POSTMARK_FROM_EMAIL", "scheduler@example.com")
 
 
 def test_lambda_handler_sends_email_for_matching_date(monkeypatch):
@@ -85,7 +85,7 @@ def test_lambda_handler_sends_email_for_matching_date(monkeypatch):
          patch("send_weekly_reminder.datetime") as mock_dt, \
          patch("send_weekly_reminder.load_log", return_value=[]), \
          patch("send_weekly_reminder.write_log") as mock_write_log, \
-         patch("send_weekly_reminder.send_email") as mock_send:
+         patch("send_weekly_reminder.send_reminder_email") as mock_send:
 
         mock_dt.utcnow.return_value.strftime.return_value = "2026-04-20"
         result = lambda_handler({}, {})
@@ -106,7 +106,7 @@ def test_lambda_handler_returns_not_sent_when_no_assignment(monkeypatch):
          patch("send_weekly_reminder.datetime") as mock_dt, \
          patch("send_weekly_reminder.load_log", return_value=[]), \
          patch("send_weekly_reminder.write_log") as mock_write_log, \
-         patch("send_weekly_reminder.send_email") as mock_send:
+         patch("send_weekly_reminder.send_reminder_email") as mock_send:
 
         mock_dt.utcnow.return_value.strftime.return_value = "2026-12-01"
         result = lambda_handler({}, {})
@@ -127,7 +127,7 @@ def test_lambda_handler_returns_not_sent_when_no_email(monkeypatch):
          patch("send_weekly_reminder.datetime") as mock_dt, \
          patch("send_weekly_reminder.load_log", return_value=[]), \
          patch("send_weekly_reminder.write_log") as mock_write_log, \
-         patch("send_weekly_reminder.send_email") as mock_send:
+         patch("send_weekly_reminder.send_reminder_email") as mock_send:
 
         mock_dt.utcnow.return_value.strftime.return_value = "2026-04-20"
         result = lambda_handler({}, {})
@@ -150,7 +150,7 @@ def test_lambda_handler_skips_when_already_sent(monkeypatch):
          patch("send_weekly_reminder.datetime") as mock_dt, \
          patch("send_weekly_reminder.load_log", return_value=prior_log), \
          patch("send_weekly_reminder.write_log") as mock_write_log, \
-         patch("send_weekly_reminder.send_email") as mock_send:
+         patch("send_weekly_reminder.send_reminder_email") as mock_send:
 
         mock_dt.utcnow.return_value.strftime.return_value = "2026-04-20"
         result = lambda_handler({}, {})

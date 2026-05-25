@@ -46,15 +46,21 @@ variable "website_cloudfront_price_class" {
   default     = "PriceClass_100"
 }
 
-variable "mailgun_api_key" {
-  description = "Mailgun API key for sending reminder emails."
+variable "postmark_server_token" {
+  description = "Postmark server token for sending reminder emails."
   type        = string
   sensitive   = true
 }
 
-variable "mailgun_domain" {
-  description = "Mailgun sending domain (e.g. mg.example.com)."
+variable "postmark_from_email" {
+  description = "Postmark sender email address (e.g. scheduler@example.com)."
   type        = string
+}
+
+variable "postmark_message_stream" {
+  description = "Optional Postmark message stream."
+  type        = string
+  default     = null
 }
 
 variable "log_retention_days" {

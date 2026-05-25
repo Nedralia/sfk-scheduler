@@ -5,7 +5,7 @@ from datetime import datetime
 
 import boto3
 
-from sfk_scheduler.mailgun import send_email
+from sfk_scheduler.postmark import send_reminder_email
 from sfk_scheduler.reminder_log import (
     already_sent,
     build_log_entry,
@@ -72,10 +72,7 @@ def lambda_handler(event, context):
         print(f"Reminder already sent to {email} for {today} — skipping")
         return {"date": today, "sent": False, "reason": "already_sent"}
 
-    api_key = os.environ["MAILGUN_API_KEY"]
-    domain = os.environ["MAILGUN_DOMAIN"]
-
-    send_email(api_key=api_key, domain=domain, to=email, subject=subject, body=body)
+    send_reminder_email(to=email, subject=subject, body=body)
 
     sent_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     log_rows.append(build_log_entry(sent_at=sent_at, week_start=today, name=row["name"], email=email))

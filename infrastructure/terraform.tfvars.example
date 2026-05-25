@@ -1,3 +1,4 @@
 aws_region     = "eu-north-1"
-mailgun_domain = "mg.example.com"
-# mailgun_api_key = "key-..."  # set via TF_VAR_mailgun_api_key or terraform.tfvars (never commit)
+postmark_from_email = "scheduler@example.com"
+# postmark_server_token = "..."  # set via TF_VAR_postmark_server_token or terraform.tfvars (never commit)
+# postmark_message_stream = "outbound"  # optional

@@ -100,8 +100,9 @@ resource "aws_lambda_function" "weekly_reminder" {
       SCHEDULE_BUCKET    = var.schedule_bucket_name
       SCHEDULE_KEY       = var.schedule_object_key
       REMINDER_LOG_KEY   = var.reminder_log_key
-      MAILGUN_API_KEY    = var.mailgun_api_key
-      MAILGUN_DOMAIN     = var.mailgun_domain
+      POSTMARK_SERVER_TOKEN = var.postmark_server_token
+      POSTMARK_FROM_EMAIL   = var.postmark_from_email
+      POSTMARK_MESSAGE_STREAM = var.postmark_message_stream
     }
   }
 

@@ -185,8 +185,9 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
 #   schedule_bucket_arn  = aws_s3_bucket.sfk_schedule_data.arn
 #   schedule_object_key  = var.schedule_object_key
 #   reminder_log_key     = "reminder_log.csv"
-#   mailgun_api_key      = var.mailgun_api_key
-#   mailgun_domain       = var.mailgun_domain
+#   postmark_server_token = var.postmark_server_token
+#   postmark_from_email   = var.postmark_from_email
+#   postmark_message_stream = var.postmark_message_stream
 #   log_retention_days   = var.log_retention_days
 #   tags                 = local.common_tags
 # }
