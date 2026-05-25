@@ -50,7 +50,10 @@ def test_service_send_email_includes_headers_and_payload():
 
     assert req.get_header("Accept") == "application/json"
     assert req.get_header("Content-Type") == "application/json" or req.get_header("Content-type") == "application/json"
-    assert req.get_header("X-postmark-server-token") == SERVER_TOKEN
+    assert any(
+        key.lower() == "x-postmark-server-token" and value == SERVER_TOKEN
+        for key, value in req.header_items()
+    )
     payload = json.loads(req.data.decode("utf-8"))
     assert payload["From"] == FROM_EMAIL
     assert payload["To"] == "user@example.com"

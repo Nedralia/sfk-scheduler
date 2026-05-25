@@ -96,14 +96,18 @@ resource "aws_lambda_function" "weekly_reminder" {
   timeout     = 30
 
   environment {
-    variables = {
-      SCHEDULE_BUCKET    = var.schedule_bucket_name
-      SCHEDULE_KEY       = var.schedule_object_key
-      REMINDER_LOG_KEY   = var.reminder_log_key
-      POSTMARK_SERVER_TOKEN = var.postmark_server_token
-      POSTMARK_FROM_EMAIL   = var.postmark_from_email
-      POSTMARK_MESSAGE_STREAM = var.postmark_message_stream
-    }
+    variables = merge(
+      {
+        SCHEDULE_BUCKET       = var.schedule_bucket_name
+        SCHEDULE_KEY          = var.schedule_object_key
+        REMINDER_LOG_KEY      = var.reminder_log_key
+        POSTMARK_SERVER_TOKEN = var.postmark_server_token
+        POSTMARK_FROM_EMAIL   = var.postmark_from_email
+      },
+      var.postmark_message_stream != null && var.postmark_message_stream != "" ? {
+        POSTMARK_MESSAGE_STREAM = var.postmark_message_stream
+      } : {},
+    )
   }
 
   depends_on = [
