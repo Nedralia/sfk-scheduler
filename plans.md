@@ -47,3 +47,6 @@ Also, if a person has not yet registered their own assignment as done, send an e
 ## TODO
 
 - [ ] Filter out guest members when syncing and preparing the member list for scheduling.
+- [ ] Add reminders.
+- [ ] Look over excluded members.
+- [ ] Make a login service.
