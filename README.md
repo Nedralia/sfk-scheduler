@@ -235,6 +235,42 @@ terraform -chdir=infrastructure apply
 
 ------------------------------------------------------------------------
 
+## CI/CD — Web Page Deployment
+
+A GitHub Actions workflow automatically builds and deploys the Vue/Vite landing page (`src/page/`) to S3 + CloudFront on every push to `main` that touches files under `src/page/**`.
+
+### First-time setup: add repository secrets
+
+Before the workflow can run, add the following secrets at **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret | Description |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | AWS IAM access key with S3 write and CloudFront invalidation permissions |
+| `AWS_SECRET_ACCESS_KEY` | Corresponding AWS secret access key |
+| `WEBSITE_BUCKET_NAME` | S3 bucket name that hosts the website (see Terraform output `website_bucket_name`) |
+| `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution ID (see Terraform output `website_cloudfront_distribution_id`) |
+
+The Terraform outputs (`website_bucket_name` and `website_cloudfront_distribution_id`) contain the exact values to use after running `terraform apply`.
+
+### IAM permissions required
+
+The IAM user or role behind the credentials needs at minimum:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": ["s3:PutObject", "s3:DeleteObject", "s3:ListBucket"],
+  "Resource": ["arn:aws:s3:::BUCKET_NAME", "arn:aws:s3:::BUCKET_NAME/*"]
+},
+{
+  "Effect": "Allow",
+  "Action": "cloudfront:CreateInvalidation",
+  "Resource": "arn:aws:cloudfront::ACCOUNT_ID:distribution/DISTRIBUTION_ID"
+}
+```
+
+------------------------------------------------------------------------
+
 ## Version control
 
 Git is used for version control and is stored on GitHub.
