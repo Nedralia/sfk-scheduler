@@ -57,8 +57,32 @@ variable "mailgun_domain" {
   type        = string
 }
 
+variable "members_object_key" {
+  description = "S3 object key for the members CSV file (written by sync_members)."
+  type        = string
+  default     = "members.csv"
+}
+
+variable "excluded_object_key" {
+  description = "S3 object key for the excluded members CSV file."
+  type        = string
+  default     = "excluded.csv"
+}
+
+variable "reminder_log_key" {
+  description = "S3 object key for the reminder log CSV file."
+  type        = string
+  default     = "reminder_log.csv"
+}
+
+variable "mwl_token" {
+  description = "MyWebLog API bearer token used by the cron job to sync members."
+  type        = string
+  sensitive   = true
+}
+
 variable "log_retention_days" {
-  description = "CloudWatch log retention in days for the reminder Lambda."
+  description = "CloudWatch log retention in days."
   type        = number
   default     = 14
 }

@@ -175,18 +175,145 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
   })
 }
 
-# module "reminder_lambda" {
-#   source = "./modules/reminder_lambda"
+# ---------------------------------------------------------------------------
+# Excluded members CSV — static list uploaded to S3 so the cron job can read it
+# ---------------------------------------------------------------------------
 
-#   function_name        = "sfk-scheduler-weekly-reminder"
-#   aws_region           = var.aws_region
-#   account_id           = data.aws_caller_identity.current.account_id
-#   schedule_bucket_name = aws_s3_bucket.sfk_schedule_data.bucket
-#   schedule_bucket_arn  = aws_s3_bucket.sfk_schedule_data.arn
-#   schedule_object_key  = var.schedule_object_key
-#   reminder_log_key     = "reminder_log.csv"
-#   mailgun_api_key      = var.mailgun_api_key
-#   mailgun_domain       = var.mailgun_domain
-#   log_retention_days   = var.log_retention_days
-#   tags                 = local.common_tags
-# }
+resource "aws_s3_object" "sfk_excluded_csv" {
+  bucket       = aws_s3_bucket.sfk_schedule_data.id
+  key          = var.excluded_object_key
+  source       = "${path.module}/../data/excluded.csv"
+  etag         = filemd5("${path.module}/../data/excluded.csv")
+  content_type = "text/csv"
+}
+
+# ---------------------------------------------------------------------------
+# Daily cron job Lambda — sync members / auto-generate schedule / send reminder
+# ---------------------------------------------------------------------------
+
+data "archive_file" "cron_job_zip" {
+  type        = "zip"
+  output_path = "${path.module}/cron_job.zip"
+  source_dir  = "${path.module}/../src"
+  excludes = [
+    "page",
+    "page/**",
+  ]
+}
+
+resource "aws_iam_role" "cron_job_lambda" {
+  name = "sfk-scheduler-cron-job-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = { Service = "lambda.amazonaws.com" }
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_role_policy" "cron_job_logging" {
+  name = "sfk-scheduler-cron-job-logging"
+  role = aws_iam_role.cron_job_lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ]
+        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "cron_job_s3" {
+  name = "sfk-scheduler-cron-job-s3"
+  role = aws_iam_role.cron_job_lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+        ]
+        Resource = "${aws_s3_bucket.sfk_schedule_data.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_cloudwatch_log_group" "cron_job_lambda" {
+  name              = "/aws/lambda/sfk-scheduler-cron-job"
+  retention_in_days = var.log_retention_days
+  tags              = local.common_tags
+}
+
+resource "aws_lambda_function" "cron_job" {
+  function_name = "sfk-scheduler-cron-job"
+  role          = aws_iam_role.cron_job_lambda.arn
+  runtime       = "python3.12"
+  handler       = "cron_job.lambda_handler"
+
+  filename         = data.archive_file.cron_job_zip.output_path
+  source_code_hash = data.archive_file.cron_job_zip.output_base64sha256
+
+  memory_size = 256
+  timeout     = 120
+
+  environment {
+    variables = {
+      SCHEDULE_BUCKET  = aws_s3_bucket.sfk_schedule_data.bucket
+      SCHEDULE_KEY     = var.schedule_object_key
+      MEMBERS_KEY      = var.members_object_key
+      EXCLUDED_KEY     = var.excluded_object_key
+      REMINDER_LOG_KEY = var.reminder_log_key
+      MAILGUN_API_KEY  = var.mailgun_api_key
+      MAILGUN_DOMAIN   = var.mailgun_domain
+      MWL_TOKEN        = var.mwl_token
+    }
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.cron_job_lambda,
+    aws_iam_role_policy.cron_job_logging,
+    aws_iam_role_policy.cron_job_s3,
+  ]
+
+  tags = local.common_tags
+}
+
+resource "aws_cloudwatch_event_rule" "cron_job_daily" {
+  name                = "sfk-scheduler-cron-job-daily"
+  description         = "Triggers the SFK cron job Lambda every day at 09:00 UTC"
+  schedule_expression = "cron(0 9 * * ? *)"
+  tags                = local.common_tags
+}
+
+resource "aws_cloudwatch_event_target" "cron_job" {
+  rule      = aws_cloudwatch_event_rule.cron_job_daily.name
+  target_id = "cron-job-lambda"
+  arn       = aws_lambda_function.cron_job.arn
+}
+
+resource "aws_lambda_permission" "cron_job_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.cron_job.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.cron_job_daily.arn
+}
