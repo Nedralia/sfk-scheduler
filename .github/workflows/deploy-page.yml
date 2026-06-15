@@ -1,6 +1,11 @@
 name: Build and Deploy Web Page
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/page/**'
   push:
     branches:
       - main
@@ -41,4 +46,4 @@ jobs:
           aws-region: eu-north-1
 
       - name: Deploy to S3 and invalidate CloudFront
-        run: bash deploy.sh "${{ secrets.WEBSITE_BUCKET_NAME }}" "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+        run: npm run deploy -- ${{ secrets.WEBSITE_BUCKET_NAME }} ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
