@@ -43,3 +43,10 @@ Connect to MWL and charge
 Send out a mail as a reminder before a cleaning assignment.
 
 Also, if a person has not yet registered their own assignment as done, send an email reminder for them to do so.
+
+## TODO
+
+- [ ] Filter out guest members when syncing and preparing the member list for scheduling.
+- [ ] Add reminders.
+- [ ] Look over excluded members.
+- [ ] Make a login service.
