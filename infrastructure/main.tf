@@ -40,9 +40,41 @@ resource "aws_s3_bucket_public_access_block" "sfk_schedule_data" {
   bucket = aws_s3_bucket.sfk_schedule_data.id
 
   block_public_acls       = true
-  block_public_policy     = true
+  block_public_policy     = false
   ignore_public_acls      = true
-  restrict_public_buckets = true
+  restrict_public_buckets = false
+}
+
+# The frontend fetches the schedule CSV directly from this bucket over HTTPS, so
+# objects must be publicly readable and the bucket must allow cross-origin reads.
+resource "aws_s3_bucket_policy" "sfk_schedule_data_public_read" {
+  bucket = aws_s3_bucket.sfk_schedule_data.id
+
+  depends_on = [aws_s3_bucket_public_access_block.sfk_schedule_data]
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowPublicRead"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.sfk_schedule_data.arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_cors_configuration" "sfk_schedule_data" {
+  bucket = aws_s3_bucket.sfk_schedule_data.id
+
+  cors_rule {
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    allowed_headers = ["*"]
+    max_age_seconds = 3600
+  }
 }
 
 resource "aws_s3_bucket" "sfk_website" {
