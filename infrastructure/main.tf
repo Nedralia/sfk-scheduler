@@ -45,14 +45,6 @@ resource "aws_s3_bucket_public_access_block" "sfk_schedule_data" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_object" "sfk_schedule_csv" {
-  bucket       = aws_s3_bucket.sfk_schedule_data.id
-  key          = var.schedule_object_key
-  source       = "${path.module}/../data/schedule.csv"
-  etag         = filemd5("${path.module}/../data/schedule.csv")
-  content_type = "text/csv"
-}
-
 resource "aws_s3_bucket" "sfk_website" {
   bucket = local.website_bucket_name
   tags   = local.common_tags
@@ -173,18 +165,6 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
       }
     ]
   })
-}
-
-# ---------------------------------------------------------------------------
-# Excluded members CSV — static list uploaded to S3 so the cron job can read it
-# ---------------------------------------------------------------------------
-
-resource "aws_s3_object" "sfk_excluded_csv" {
-  bucket       = aws_s3_bucket.sfk_schedule_data.id
-  key          = var.excluded_object_key
-  source       = "${path.module}/../data/excluded.csv"
-  etag         = filemd5("${path.module}/../data/excluded.csv")
-  content_type = "text/csv"
 }
 
 # ---------------------------------------------------------------------------
