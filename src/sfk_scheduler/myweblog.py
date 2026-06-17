@@ -1,12 +1,32 @@
 import json
+from pathlib import Path
 from urllib import error, parse, request
 from uuid import uuid4
 import os
 
 from sfk_scheduler.members import normalize_members
 
+EXCLUDED_USER_GROUP_IDS = {711}  # Gästmedlem
+CLEAN_MEMBER_GROUP_IDS = {1782}  # Städschema
+BOARD_MEMBER_GROUP_IDS = {851}  # Styrelse
+FERRY_MEMBER_GROUP_IDS = {1350}  # Färjeschema
+
+
+MYWEBLOG_API_URL = "https://api.myweblog.se/main/v4/users/"
+DEFAULT_PAGE_SIZE = 500
+
+TMP_DIR = Path(__file__).resolve().parents[2] / "tmp"
+
+def save_response_for_debugging(payload):
+    timestamp = uuid4()
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = TMP_DIR / f"myweblog_response_{timestamp}.json"
+    with open(output_path, "w") as f:
+        json.dump(payload, f, indent=2)
 
 def parse_api_response(payload):
+    save_response_for_debugging(payload)
+
     if isinstance(payload, dict):
         if payload.get("errors"):
             error_messages = "; ".join(
@@ -21,10 +41,6 @@ def parse_api_response(payload):
             return users
 
     raise ValueError("Could not find a users list in the MyWebLog response.")
-
-MYWEBLOG_API_URL = "https://api.myweblog.se/main/v4/users/"
-DEFAULT_PAGE_SIZE = 500
-
 
 def build_headers(token, request_id):
     return {
@@ -84,12 +100,12 @@ def fetch_users_page(token, offset, base_url=MYWEBLOG_API_URL, page_size=DEFAULT
     return parse_api_response(payload)
 
 
-EXCLUDED_USER_GROUP_IDS = {711}  # Gästmedlem
-
-
 def _is_excluded_member(user):
+    return user
+
+def _is_included_member(user):
     user_groups = user.get("user_groups") or []
-    return any(g.get("id") in EXCLUDED_USER_GROUP_IDS for g in user_groups)
+    return any(g.get("id") in CLEAN_MEMBER_GROUP_IDS for g in user_groups)
 
 
 def fetch_current_members(token, base_url=MYWEBLOG_API_URL, page_size=DEFAULT_PAGE_SIZE):
@@ -105,5 +121,6 @@ def fetch_current_members(token, base_url=MYWEBLOG_API_URL, page_size=DEFAULT_PA
 
         offset += page_size
 
-    all_users = [u for u in all_users if not _is_excluded_member(u)]
-    return normalize_members(all_users)
+    included_members = [u for u in all_users if _is_included_member(u)]
+
+    return normalize_members(included_members)

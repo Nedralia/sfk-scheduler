@@ -35,15 +35,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
+
+      - name: Fetch schedule data
+        run: |
+          mkdir -p ../../data
+          BUCKET="$(echo -n "${{ secrets.SCHEDULE_BUCKET_NAME }}" | tr -d '[:space:]')"
+          aws s3 sync "s3://${BUCKET}" ../../data
+
+      - name: Build
+        run: npm run build
 
       - name: Deploy to S3 and invalidate CloudFront
         run: npm run deploy -- ${{ secrets.WEBSITE_BUCKET_NAME }} ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}

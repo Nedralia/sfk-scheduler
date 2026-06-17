@@ -12,9 +12,13 @@ infrastructure/*.tfplan
 
 # Python
 __pycache__/
+/src/sfk_scheduler/__pycache__/
 
 # Vite
 dist/
 
 # Node
 node_modules/
+
+# Logs
+tmp/

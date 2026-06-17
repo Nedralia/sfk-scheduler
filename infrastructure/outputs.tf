@@ -5,7 +5,7 @@ output "schedule_bucket_name" {
 
 output "schedule_object_key" {
   description = "S3 object key for the schedule CSV."
-  value       = aws_s3_object.sfk_schedule_csv.key
+  value       = var.schedule_object_key
 }
 
 output "website_bucket_name" {

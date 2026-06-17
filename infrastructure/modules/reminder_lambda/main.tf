@@ -97,11 +97,11 @@ resource "aws_lambda_function" "weekly_reminder" {
 
   environment {
     variables = {
-      SCHEDULE_BUCKET    = var.schedule_bucket_name
-      SCHEDULE_KEY       = var.schedule_object_key
-      REMINDER_LOG_KEY   = var.reminder_log_key
-      MAILGUN_API_KEY    = var.mailgun_api_key
-      MAILGUN_DOMAIN     = var.mailgun_domain
+      SCHEDULE_BUCKET  = var.schedule_bucket_name
+      SCHEDULE_KEY     = var.schedule_object_key
+      REMINDER_LOG_KEY = var.reminder_log_key
+      MAILGUN_API_KEY  = var.mailgun_api_key
+      MAILGUN_DOMAIN   = var.mailgun_domain
     }
   }
 
