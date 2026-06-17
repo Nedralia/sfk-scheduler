@@ -20,8 +20,6 @@ permissions:
   pull-requests: write
 
 env:
-  TF_VAR_mailgun_api_key: ${{ secrets.MAILGUN_API_KEY }}
-  TF_VAR_mailgun_domain: ${{ secrets.MAILGUN_DOMAIN }}
   TF_VAR_mwl_token: ${{ secrets.MWL_TOKEN }}
 
 jobs:

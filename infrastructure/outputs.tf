@@ -27,8 +27,3 @@ output "cron_job_lambda_function_name" {
   description = "Name of the daily cron job Lambda function."
   value       = aws_lambda_function.cron_job.function_name
 }
-
-# output "reminder_eventbridge_rule" {
-#   description = "EventBridge rule that triggers the Lambda every Monday."
-#   value       = module.reminder_lambda.eventbridge_rule_name
-# }

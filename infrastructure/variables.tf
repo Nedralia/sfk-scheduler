@@ -58,33 +58,10 @@ variable "website_acm_certificate_arn" {
   default     = "arn:aws:acm:us-east-1:992382661713:certificate/fb6f6459-c558-4b02-8bb7-0cf05a0b6af7"
 }
 
-variable "mailgun_api_key" {
-  description = "Mailgun API key for sending reminder emails."
-  type        = string
-  sensitive   = true
-}
-
-variable "mailgun_domain" {
-  description = "Mailgun sending domain (e.g. mg.example.com)."
-  type        = string
-}
-
 variable "members_object_key" {
   description = "S3 object key for the members CSV file (written by sync_members)."
   type        = string
   default     = "members.csv"
-}
-
-variable "excluded_object_key" {
-  description = "S3 object key for the excluded members CSV file."
-  type        = string
-  default     = "excluded.csv"
-}
-
-variable "reminder_log_key" {
-  description = "S3 object key for the reminder log CSV file."
-  type        = string
-  default     = "reminder_log.csv"
 }
 
 variable "mwl_token" {

@@ -204,7 +204,7 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
 }
 
 # ---------------------------------------------------------------------------
-# Daily cron job Lambda — sync members / auto-generate schedule / send reminder
+# Daily cron job Lambda — sync members
 # ---------------------------------------------------------------------------
 
 data "archive_file" "cron_job_zip" {
@@ -293,14 +293,9 @@ resource "aws_lambda_function" "cron_job" {
 
   environment {
     variables = {
-      SCHEDULE_BUCKET  = aws_s3_bucket.sfk_schedule_data.bucket
-      SCHEDULE_KEY     = var.schedule_object_key
-      MEMBERS_KEY      = var.members_object_key
-      EXCLUDED_KEY     = var.excluded_object_key
-      REMINDER_LOG_KEY = var.reminder_log_key
-      MAILGUN_API_KEY  = var.mailgun_api_key
-      MAILGUN_DOMAIN   = var.mailgun_domain
-      MWL_TOKEN        = var.mwl_token
+      SCHEDULE_BUCKET = aws_s3_bucket.sfk_schedule_data.bucket
+      MEMBERS_KEY    = var.members_object_key
+      MWL_TOKEN      = var.mwl_token
     }
   }
 
