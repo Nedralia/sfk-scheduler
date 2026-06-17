@@ -84,6 +84,14 @@ def fetch_users_page(token, offset, base_url=MYWEBLOG_API_URL, page_size=DEFAULT
     return parse_api_response(payload)
 
 
+EXCLUDED_USER_GROUP_IDS = {711}  # Gästmedlem
+
+
+def _is_excluded_member(user):
+    user_groups = user.get("user_groups") or []
+    return any(g.get("id") in EXCLUDED_USER_GROUP_IDS for g in user_groups)
+
+
 def fetch_current_members(token, base_url=MYWEBLOG_API_URL, page_size=DEFAULT_PAGE_SIZE):
     all_users = []
     offset = 0
@@ -97,6 +105,5 @@ def fetch_current_members(token, base_url=MYWEBLOG_API_URL, page_size=DEFAULT_PA
 
         offset += page_size
 
-    normalized = normalize_members(all_users)
-
-    return normalized
+    all_users = [u for u in all_users if not _is_excluded_member(u)]
+    return normalize_members(all_users)

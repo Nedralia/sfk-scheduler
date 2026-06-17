@@ -7,6 +7,7 @@ from sfk_scheduler.myweblog import (
     parse_api_response,
     fetch_users_page,
     fetch_current_members,
+    EXCLUDED_USER_GROUP_IDS,
 )
 
 BASE_URL = "https://api.myweblog.se/main/v4/users/"
@@ -157,3 +158,19 @@ def test_fetch_current_members_paginates_until_short_page(monkeypatch):
 
     names = [r[0] for r in result]
     assert "Last User" in names
+
+
+def test_fetch_current_members_excludes_gastmedlem():
+    regular = {"first_name": "Anna", "last_name": "Svensson", "member_number": "1", "user_groups": []}
+    gastmedlem = {"first_name": "Bo", "last_name": "Guest", "member_number": "2", "user_groups": [{"id": 711, "name": "Gästmedlem"}]}
+
+    with patch("sfk_scheduler.myweblog.fetch_users_page", return_value=[regular, gastmedlem]):
+        result = fetch_current_members("token", base_url=BASE_URL, page_size=500)
+
+    names = [r[0] for r in result]
+    assert "Anna Svensson" in names
+    assert "Bo Guest" not in names
+
+
+def test_excluded_user_group_ids_contains_gastmedlem():
+    assert 711 in EXCLUDED_USER_GROUP_IDS
