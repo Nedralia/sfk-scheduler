@@ -14,6 +14,9 @@ DISTRIBUTION_ID=$2 # EBDGRJ1SFCCH0
 # Sync the /dist directory to the S3 bucket
 aws s3 sync ./dist s3://$BUCKET_NAME --delete
 
+# Sync the content in ../../data to the S3 bucket
+# aws s3 sync ../../data s3://$BUCKET_NAME/data --delete
+
 # Invalidate CloudFront cache
 aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
 

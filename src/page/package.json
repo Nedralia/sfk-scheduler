@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "clean": "rm -rf dist",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "deploy": "bash deploy.sh $BUCKET_NAME $DISTRIBUTION_ID"
