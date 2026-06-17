@@ -128,7 +128,7 @@ async function fetchScheduleData() {
   // Fetch the schedule CSV directly from the public S3 bucket over HTTPS so the
   // page always reflects the latest data written by the cron job, with no rebuild.
   const candidates = [
-    "https://sfk-scheduler-data-992382661713-eu-north-1.s3.eu-north-1.amazonaws.com/schedule.csv",
+    "https://sfk-scheduler-data-992382661713-eu-north-1.s3.eu-north-1.amazonaws.com/data/schedule.csv",
   ];
 
   for (const candidate of candidates) {
