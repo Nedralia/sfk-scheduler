@@ -23,10 +23,10 @@ output "website_cloudfront_domain_name" {
   value       = aws_cloudfront_distribution.sfk_website.domain_name
 }
 
-# output "reminder_lambda_function_name" {
-#   description = "Name of the weekly reminder Lambda function."
-#   value       = module.reminder_lambda.function_name
-# }
+output "cron_job_lambda_function_name" {
+  description = "Name of the daily cron job Lambda function."
+  value       = aws_lambda_function.cron_job.function_name
+}
 
 # output "reminder_eventbridge_rule" {
 #   description = "EventBridge rule that triggers the Lambda every Monday."

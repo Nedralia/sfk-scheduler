@@ -1,6 +1,7 @@
 import json
 from urllib import error, parse, request
 from uuid import uuid4
+import os
 
 from sfk_scheduler.members import normalize_members
 
@@ -72,6 +73,13 @@ def fetch_users_page(token, offset, base_url=MYWEBLOG_API_URL, page_size=DEFAULT
         ) from exc
     except error.URLError as exc:
         raise RuntimeError(f"Could not connect to MyWebLog: {exc.reason}") from exc
+
+    # Create folder /tmp if it doesn't exist
+    os.makedirs("./tmp", exist_ok=True)
+
+    # Write the whole raw response to ./tmp/myweblog_response_{request_id}.json for debugging purposes
+    with open(f"./tmp/myweblog_response_{request_id}.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
 
     return parse_api_response(payload)
 
