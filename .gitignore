@@ -9,6 +9,7 @@ infrastructure/backend.hcl
 infrastructure/.terraform/
 infrastructure/.terraform.lock.hcl
 infrastructure/*.tfplan
+infrastructure/cron_job.zip
 
 # Python
 __pycache__/
