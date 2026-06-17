@@ -73,6 +73,7 @@ def _compute_end_date(today):
     try:
         one_year_ahead = today.replace(year=today.year + 1)
     except ValueError:
+        # Feb 29 does not exist in non-leap years, so fall back to Feb 28 first.
         one_year_ahead = today.replace(year=today.year + 1, day=28)
     return one_year_ahead - timedelta(days=1)
 
