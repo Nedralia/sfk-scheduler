@@ -75,8 +75,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: infrastructure/tfplan
+          # The saved plan references the Lambda zip produced by the
+          # archive_file data source; it must travel with the plan because
+          # applying a saved plan does not re-run data sources.
+          path: |
+            infrastructure/tfplan
+            infrastructure/cron_job.zip
           retention-days: 5
+          include-hidden-files: true
 
       - name: Comment plan on PR
         if: github.event_name == 'pull_request'

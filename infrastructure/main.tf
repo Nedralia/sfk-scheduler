@@ -91,6 +91,7 @@ resource "aws_cloudfront_distribution" "sfk_website" {
   default_root_object = var.website_index_document
   comment             = "CloudFront distribution for the SFK website"
   price_class         = var.website_cloudfront_price_class
+  aliases             = var.website_aliases
 
   origin {
     domain_name              = aws_s3_bucket.sfk_website.bucket_regional_domain_name
@@ -135,7 +136,10 @@ resource "aws_cloudfront_distribution" "sfk_website" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = var.website_acm_certificate_arn == ""
+    acm_certificate_arn            = var.website_acm_certificate_arn == "" ? null : var.website_acm_certificate_arn
+    ssl_support_method             = var.website_acm_certificate_arn == "" ? null : "sni-only"
+    minimum_protocol_version       = var.website_acm_certificate_arn == "" ? "TLSv1" : "TLSv1.2_2021"
   }
 
   tags = local.common_tags
