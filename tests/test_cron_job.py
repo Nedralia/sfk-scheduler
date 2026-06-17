@@ -191,6 +191,23 @@ def test_run_auto_generate_appends_to_existing_schedule():
     }
 
 
+def test_run_auto_generate_handles_empty_generated_rows():
+    mock_s3 = _mock_s3(schedule_rows=SCHEDULE_ROWS)
+
+    with patch("cron_job.generate_schedule", return_value=[]):
+        result = run_auto_generate(
+            mock_s3,
+            "test-bucket",
+            "data/schedule.csv",
+            "members.csv",
+            "excluded.csv",
+            datetime(2026, 3, 1),
+        )
+
+    mock_s3.put_object.assert_not_called()
+    assert result == {"ran": False, "reason": "no_rows_added"}
+
+
 def test_lambda_handler_reports_auto_generate_result(monkeypatch):
     monkeypatch.setenv("SCHEDULE_BUCKET", "test-bucket")
     monkeypatch.setenv("SCHEDULE_KEY", "data/schedule.csv")

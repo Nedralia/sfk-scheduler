@@ -142,6 +142,11 @@ def run_auto_generate(s3, bucket, schedule_key, members_key, excluded_key, today
         end_date=target_end,
     )
     appended_rows = _schedule_rows_to_dicts(schedule_rows)
+
+    if not appended_rows:
+        print("[auto_generate] No additional weeks were generated")
+        return {"ran": False, "reason": "no_rows_added"}
+
     combined_rows = list(existing_rows) + appended_rows
 
     _write_csv(s3, bucket, schedule_key, SCHEDULE_FIELDS, combined_rows)
