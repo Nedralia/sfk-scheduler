@@ -12,7 +12,7 @@ from running.
 import csv
 import io
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
@@ -28,6 +28,10 @@ AUTO_GENERATE_DAY = 1
 
 def _s3():
     return boto3.client("s3")
+
+
+def _utc_now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _read_csv(s3, bucket, key):
@@ -123,7 +127,10 @@ def run_auto_generate(s3, bucket, schedule_key, members_key, excluded_key, today
         print("[auto_generate] Skipping — no existing schedule found in S3")
         return {"ran": False, "reason": "missing_schedule"}
 
-    last_date = max(datetime.fromisoformat(row["week_start"]) for row in existing_rows)
+    try:
+        last_date = max(datetime.fromisoformat(row["week_start"]) for row in existing_rows)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid schedule date in s3://{bucket}/{schedule_key}") from exc
     target_end = _compute_end_date(today)
 
     next_start = last_date + timedelta(weeks=1)
@@ -179,7 +186,7 @@ def lambda_handler(event, context):
 
     s3 = _s3()
     results = {}
-    today = datetime.utcnow()
+    today = _utc_now()
 
     try:
         results["sync_members"] = run_sync_members(s3, bucket, members_key, mwl_token)

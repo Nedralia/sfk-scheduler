@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from cron_job import (
     SCHEDULE_FIELDS,
@@ -73,7 +75,7 @@ def test_should_run_auto_generate_only_on_march_first():
 
 
 def test_run_auto_generate_skips_when_not_march_first():
-    mock_s3 = _mock_s3(schedule_rows=SCHEDULE_ROWS)
+    mock_s3 = _mock_s3()
 
     result = run_auto_generate(
         mock_s3,
@@ -103,6 +105,29 @@ def test_run_auto_generate_skips_when_existing_schedule_is_missing():
 
     mock_s3.put_object.assert_not_called()
     assert result == {"ran": False, "reason": "missing_schedule"}
+
+
+def test_run_auto_generate_raises_for_invalid_existing_schedule_date():
+    mock_s3 = _mock_s3(schedule_rows=[
+        {
+            "week_start": "not-a-date",
+            "week_number": "8",
+            "year": "2026",
+            "name": "Anna Svensson",
+            "member_number": "101",
+            "status": "",
+        },
+    ])
+
+    with pytest.raises(RuntimeError, match="Invalid schedule date"):
+        run_auto_generate(
+            mock_s3,
+            "test-bucket",
+            "data/schedule.csv",
+            "members.csv",
+            "excluded.csv",
+            datetime(2026, 3, 1),
+        )
 
 
 def test_run_auto_generate_skips_when_schedule_already_covers_target_window():
@@ -221,10 +246,9 @@ def test_lambda_handler_reports_auto_generate_result(monkeypatch):
     today = datetime(2026, 3, 1)
 
     with patch("cron_job._s3", return_value="mock-s3"), \
-         patch("cron_job.datetime") as mock_datetime, \
+         patch("cron_job._utc_now", return_value=today), \
          patch("cron_job.run_sync_members", return_value={"synced": 3}) as mock_sync, \
          patch("cron_job.run_auto_generate", return_value={"ran": True, "added": 5}) as mock_auto:
-        mock_datetime.utcnow.return_value = today
         result = lambda_handler({}, {})
 
     mock_sync.assert_called_once_with("mock-s3", "test-bucket", "members.csv", "token")
