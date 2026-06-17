@@ -45,7 +45,8 @@ jobs:
       - name: Fetch schedule data
         run: |
           mkdir -p ../../data
-          aws s3 cp "s3://${{ secrets.SCHEDULE_BUCKET_NAME }}/schedule.csv" ../../data/schedule.csv
+          BUCKET="$(echo -n "${{ secrets.SCHEDULE_BUCKET_NAME }}" | tr -d '[:space:]')"
+          aws s3 cp "s3://${BUCKET}/schedule.csv" ../../data/schedule.csv
 
       - name: Build
         run: npm run build
