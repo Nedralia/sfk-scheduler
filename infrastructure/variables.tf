@@ -46,6 +46,18 @@ variable "website_cloudfront_price_class" {
   default     = "PriceClass_100"
 }
 
+variable "website_aliases" {
+  description = "Custom domain names (CNAMEs) served by the CloudFront distribution."
+  type        = list(string)
+  default     = ["sfk.nedralia.se"]
+}
+
+variable "website_acm_certificate_arn" {
+  description = "ARN of the ACM certificate (must be in us-east-1) used for the custom domain. Leave empty to use the default CloudFront certificate."
+  type        = string
+  default     = "arn:aws:acm:us-east-1:992382661713:certificate/fb6f6459-c558-4b02-8bb7-0cf05a0b6af7"
+}
+
 variable "mailgun_api_key" {
   description = "Mailgun API key for sending reminder emails."
   type        = string
