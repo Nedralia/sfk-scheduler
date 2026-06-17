@@ -1,7 +1,7 @@
 """
 Daily cron job Lambda handler — runs every day at 09:00 UTC.
 
-The cron job currently runs the member sync step.
+The cron job runs the member sync step and checks the schedule for reminders.
 """
 
 import csv
