@@ -15,17 +15,7 @@ FERRY_MEMBER_GROUP_IDS = {1350}  # Färjeschema
 MYWEBLOG_API_URL = "https://api.myweblog.se/main/v4/users/"
 DEFAULT_PAGE_SIZE = 500
 
-TMP_DIR = Path(__file__).resolve().parents[2] / "tmp"
-
-def save_response_for_debugging(payload):
-    timestamp = uuid4()
-    TMP_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = TMP_DIR / f"myweblog_response_{timestamp}.json"
-    with open(output_path, "w") as f:
-        json.dump(payload, f, indent=2)
-
 def parse_api_response(payload):
-    save_response_for_debugging(payload)
 
     if isinstance(payload, dict):
         if payload.get("errors"):
