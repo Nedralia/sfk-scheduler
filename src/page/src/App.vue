@@ -125,7 +125,11 @@ function parseCsv(csvText: string): ScheduleRow[] {
 }
 
 async function fetchScheduleData() {
-  const candidates = ["/data/schedule.csv", "/schedule.csv", "/data/schedule", "/schedule"];
+  // Fetch the schedule CSV directly from the public S3 bucket over HTTPS so the
+  // page always reflects the latest data written by the cron job, with no rebuild.
+  const candidates = [
+    "https://sfk-scheduler-data-992382661713-eu-north-1.s3.eu-north-1.amazonaws.com/schedule.csv",
+  ];
 
   for (const candidate of candidates) {
     const response = await fetch(candidate, { cache: "no-store" });
@@ -141,7 +145,7 @@ async function fetchScheduleData() {
     }
   }
 
-  throw new Error("No schedule data could be loaded from /data/schedule.csv.");
+  throw new Error("No schedule data could be loaded from the schedule data bucket.");
 }
 
 onMounted(async () => {
