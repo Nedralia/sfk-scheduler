@@ -91,11 +91,11 @@ def fetch_users_page(token, offset, base_url=MYWEBLOG_API_URL, page_size=DEFAULT
         raise RuntimeError(f"Could not connect to MyWebLog: {exc.reason}") from exc
 
     # Create folder /tmp if it doesn't exist
-    os.makedirs("./tmp", exist_ok=True)
+    # os.makedirs("./tmp", exist_ok=True)
 
     # Write the whole raw response to ./tmp/myweblog_response_{request_id}.json for debugging purposes
-    with open(f"./tmp/myweblog_response_{request_id}.json", "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
+    # with open(f"./tmp/myweblog_response_{request_id}.json", "w", encoding="utf-8") as f:
+    #     json.dump(payload, f, indent=2)
 
     return parse_api_response(payload)
 
