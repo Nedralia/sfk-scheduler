@@ -85,6 +85,30 @@ resource "aws_cloudfront_origin_access_control" "sfk_website" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_origin_access_control" "sfk_schedule_data" {
+  name                              = "${local.schedule_bucket_name}-oac"
+  description                       = "Origin access control for the sfk schedule data bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+# Rewrites "/data/*" requests to the schedule data bucket root, so the website
+# can fetch e.g. "/data/schedule.csv" while the object is stored at "schedule.csv".
+resource "aws_cloudfront_function" "strip_data_prefix" {
+  name    = "sfk-strip-data-prefix"
+  runtime = "cloudfront-js-2.0"
+  comment = "Strip the /data prefix when serving the schedule data bucket"
+  publish = true
+  code    = <<-EOT
+    function handler(event) {
+      var request = event.request;
+      request.uri = request.uri.replace(/^\/data/, "");
+      return request;
+    }
+  EOT
+}
+
 resource "aws_cloudfront_distribution" "sfk_website" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -97,6 +121,12 @@ resource "aws_cloudfront_distribution" "sfk_website" {
     domain_name              = aws_s3_bucket.sfk_website.bucket_regional_domain_name
     origin_id                = aws_s3_bucket.sfk_website.id
     origin_access_control_id = aws_cloudfront_origin_access_control.sfk_website.id
+  }
+
+  origin {
+    domain_name              = aws_s3_bucket.sfk_schedule_data.bucket_regional_domain_name
+    origin_id                = aws_s3_bucket.sfk_schedule_data.id
+    origin_access_control_id = aws_cloudfront_origin_access_control.sfk_schedule_data.id
   }
 
   default_cache_behavior {
@@ -112,6 +142,34 @@ resource "aws_cloudfront_distribution" "sfk_website" {
       cookies {
         forward = "none"
       }
+    }
+  }
+
+  # Serve the CSV data live from the schedule data bucket so changes are picked
+  # up without rebuilding the website. Caching is disabled to always read fresh.
+  ordered_cache_behavior {
+    path_pattern           = "/data/*"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = aws_s3_bucket.sfk_schedule_data.id
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
+
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.strip_data_prefix.arn
     }
   }
 
@@ -161,6 +219,32 @@ resource "aws_s3_bucket_policy" "sfk_website_cloudfront_read" {
         }
         Action   = "s3:GetObject"
         Resource = "${aws_s3_bucket.sfk_website.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.sfk_website.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket_policy" "sfk_schedule_data_cloudfront_read" {
+  bucket = aws_s3_bucket.sfk_schedule_data.id
+
+  depends_on = [aws_s3_bucket_public_access_block.sfk_schedule_data]
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontServiceRead"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.sfk_schedule_data.arn}/*"
         Condition = {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.sfk_website.arn
