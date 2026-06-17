@@ -46,7 +46,7 @@ jobs:
         run: |
           mkdir -p ../../data
           BUCKET="$(echo -n "${{ secrets.SCHEDULE_BUCKET_NAME }}" | tr -d '[:space:]')"
-          aws s3 cp "s3://${BUCKET}/schedule.csv" ../../data/schedule.csv
+          aws s3 sync "s3://${BUCKET}" ../../data
 
       - name: Build
         run: npm run build
