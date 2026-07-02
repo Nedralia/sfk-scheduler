@@ -30,7 +30,6 @@ The system is designed to run automatically using cron jobs.
     club-cleaning-scheduler/
     ├── scripts/
     │   ├── schedule.py             # Schedule generator
-    │   ├── send_reminder.py        # Daily email reminder sender
     │   ├── auto_generate_schedule.py
     │   ├── clean_schedule_data.py  # Resets generated schedule data
     │   └── sync_members.py         # Fetches members from MyWebLog
@@ -60,17 +59,6 @@ Rules:
 -   All weeks start on Mondays
 -   ISO week number is included
 -   Output is written to `data/schedule.csv`
-
-------------------------------------------------------------------------
-
-### scripts/send_reminder.py
-
-Reads `data/schedule.csv` daily and:
-
--   Finds who is scheduled 3 days in advance
--   Builds reminder payloads for a future delivery provider
-
-Intended to run automatically using cron.
 
 ------------------------------------------------------------------------
 
@@ -187,12 +175,6 @@ Generate a fresh schedule and ignore previous assignments:
 python scripts/schedule.py --start-date 2026-04-15 --force-reset
 ```
 
-Run reminders manually:
-
-``` bash
-python scripts/send_reminder.py
-```
-
 Check if schedule needs to be regenerated:
 
 ``` bash
@@ -220,7 +202,7 @@ Terraform files for AWS live in `infrastructure/`.
 The Terraform setup provisions:
 
 -   An S3 bucket for `data/schedule.csv`
--   A Lambda function for `scripts/send_reminder.py`
+-   A Lambda function for `src/cron_job.py`
 -   IAM policies for CloudWatch Logs and S3 reads
 -   A daily EventBridge trigger
 
