@@ -19,7 +19,7 @@ variable "schedule_bucket_name_prefix" {
 variable "schedule_object_key" {
   description = "S3 object key for the schedule CSV file."
   type        = string
-  default     = "schedule.csv"
+  default     = "data/schedule.csv"
 }
 
 variable "website_bucket_name_prefix" {

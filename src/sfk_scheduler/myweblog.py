@@ -91,11 +91,11 @@ def fetch_users_page(token, offset, base_url=MYWEBLOG_API_URL, page_size=DEFAULT
 
 
 def _is_excluded_member(user):
-    return user
+    user_groups = user.get("user_groups") or []
+    return any(g.get("id") in EXCLUDED_USER_GROUP_IDS for g in user_groups)
 
 def _is_included_member(user):
-    user_groups = user.get("user_groups") or []
-    return any(g.get("id") in CLEAN_MEMBER_GROUP_IDS for g in user_groups)
+    return not _is_excluded_member(user)
 
 
 def fetch_current_members(token, base_url=MYWEBLOG_API_URL, page_size=DEFAULT_PAGE_SIZE):

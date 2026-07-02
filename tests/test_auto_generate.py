@@ -2,8 +2,10 @@ import sys
 import pytest
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+import auto_generate
 from auto_generate import compute_end_date, needs_extension
 
 
@@ -58,3 +60,24 @@ def test_needs_extension_uses_default_threshold():
     today = datetime(2026, 4, 22)
     last_date = today + timedelta(days=30)
     assert needs_extension(last_date, today) is True
+
+
+def test_main_syncs_members_before_generating_schedule():
+    today = datetime(2026, 4, 22)
+    calls = []
+
+    with patch("auto_generate.datetime") as mock_datetime, \
+         patch("auto_generate.sync_members", side_effect=lambda: calls.append("sync") or [("Anna Svensson", "1")]), \
+         patch("auto_generate.get_last_scheduled_date", return_value=None), \
+         patch("auto_generate.subprocess.run", side_effect=lambda *args, **kwargs: calls.append("generate")) as mock_run:
+        mock_datetime.today.return_value = today
+        auto_generate.main()
+
+    assert calls == ["sync", "generate"]
+    command = mock_run.call_args.args[0]
+    assert command[0] == sys.executable
+    assert command[1] == str(auto_generate.GENERATE_SCRIPT)
+    assert command[2:] == [
+        "--start-date", "2026-04-22",
+        "--end-date", "2027-04-21",
+    ]
