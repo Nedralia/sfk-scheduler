@@ -78,6 +78,7 @@ Intended to run automatically using cron.
 
 Monitors `data/schedule.csv` and:
 
+-   Refreshes `data/members.csv` from MyWebLog before extending the schedule
 -   Detects when less than 60 days remain in the schedule
 -   Automatically runs `scripts/schedule.py` to generate new future schedules
 

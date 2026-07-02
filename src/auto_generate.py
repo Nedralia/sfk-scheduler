@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from sfk_scheduler.schedule_io import get_last_scheduled_date
+from sync_members import sync_members
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -28,6 +29,8 @@ def needs_extension(last_date, today, threshold_days=THRESHOLD_DAYS):
 
 def main():
     today = datetime.today()
+    members = sync_members()
+    print(f"Fetched {len(members)} members from MyWebLog")
     end_date = compute_end_date(today).strftime("%Y-%m-%d")
     last_date = get_last_scheduled_date(SCHEDULE_FILE)
 
@@ -69,4 +72,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
