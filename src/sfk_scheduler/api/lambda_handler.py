@@ -4,7 +4,7 @@ import csv
 import io
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
@@ -14,6 +14,16 @@ CORS_HEADERS = {
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
 }
+SCHEDULE_CSV_FIELDS = [
+    "week_start",
+    "week_number",
+    "year",
+    "name",
+    "member_number",
+    "status",
+    "completion_comment",
+    "completed_at",
+]
 
 
 def _response(status_code, body):
@@ -25,7 +35,7 @@ def _response(status_code, body):
 
 
 def _utc_now():
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def _parse_json_body(event):
@@ -49,23 +59,15 @@ def _read_schedule_rows(s3, bucket, key):
 
 
 def _write_schedule_rows(s3, bucket, key, rows):
-    ordered_fields = [
-        "week_start",
-        "week_number",
-        "year",
-        "name",
-        "member_number",
-        "status",
-        "completion_comment",
-        "completed_at",
-    ]
     discovered_fields = []
+    discovered_field_set = set()
     for row in rows:
         for field in row.keys():
-            if field not in ordered_fields and field not in discovered_fields:
+            if field not in SCHEDULE_CSV_FIELDS and field not in discovered_field_set:
                 discovered_fields.append(field)
+                discovered_field_set.add(field)
 
-    fieldnames = ordered_fields + discovered_fields
+    fieldnames = SCHEDULE_CSV_FIELDS + discovered_fields
     buf = io.StringIO()
     writer = csv.DictWriter(buf, fieldnames=fieldnames, extrasaction="ignore")
     writer.writeheader()
@@ -79,14 +81,16 @@ def _write_schedule_rows(s3, bucket, key, rows):
 
 
 def _find_assignment_index(rows, member_number, week_start):
+    normalized_member_number = str(member_number).strip()
     for index, row in enumerate(rows):
-        if row.get("week_start") == week_start and row.get("member_number", "").strip() == member_number:
+        if row.get("week_start") == week_start and row.get("member_number", "").strip() == normalized_member_number:
             return index
     return None
 
 
 def _is_completed(status):
-    return status.strip().lower() in {
+    normalized = str(status or "").strip().lower()
+    return normalized in {
         "completed",
         "done",
         "true",
@@ -159,6 +163,7 @@ def complete_cleaning_handler(event):
     s3 = _s3()
     rows = _read_schedule_rows(s3, bucket, key)
     now = _utc_now()
+    # week_start is the Monday date of the current assignment week.
     week_start = (now - timedelta(days=now.weekday())).strftime("%Y-%m-%d")
 
     index = _find_assignment_index(rows, member_number, week_start)

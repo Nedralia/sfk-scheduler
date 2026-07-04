@@ -22,6 +22,13 @@ const cleanedFridge = ref(false);
 const vacuumedFloors = ref(false);
 const emptiedTrash = ref(false);
 const completionComment = ref("");
+const completionApiPath = "/cleaning/complete";
+
+function normalizeApiBaseUrl(value: string | undefined): string {
+  return (value || "").replace(/\/$/, "");
+}
+
+const completionApiBaseUrl = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL as string | undefined);
 
 const totalAssignments = computed(() => rows.value.length);
 const uniqueMembers = computed(() => new Set(rows.value.map((row) => row.name)).size);
@@ -108,55 +115,6 @@ function parseCsv(csvText: string): ScheduleRow[] {
     return [];
   }
 
-  function resetCompletionMessages() {
-    completionSuccess.value = "";
-    completionError.value = "";
-  }
-
-  async function submitCompletion() {
-    resetCompletionMessages();
-    if (!memberNumber.value.trim()) {
-      completionError.value = "Member number is required.";
-      return;
-    }
-
-    if (!cleanedFridge.value || !vacuumedFloors.value || !emptiedTrash.value) {
-      completionError.value = "Please confirm all cleaning tasks before submitting.";
-      return;
-    }
-
-    const baseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
-    const endpoint = `${baseUrl}/cleaning/complete`;
-
-    submittingCompletion.value = true;
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          member_number: memberNumber.value.trim(),
-          cleaned_fridge: cleanedFridge.value,
-          vacuumed_floors: vacuumedFloors.value,
-          emptied_trash: emptiedTrash.value,
-          comment: completionComment.value.trim(),
-        }),
-      });
-
-      const payload = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        completionError.value = payload.message || "Failed to register cleaning completion.";
-        return;
-      }
-
-      completionSuccess.value = payload.message || "Cleaning completion registered.";
-      completionComment.value = "";
-    } catch {
-      completionError.value = "Unable to submit cleaning completion right now.";
-    } finally {
-      submittingCompletion.value = false;
-    }
-  }
-
   const headers = lines[0].split(",").map((header) => header.trim());
   const requiredHeaders = ["week_start", "week_number", "year", "name"];
   const hasRequiredHeaders = requiredHeaders.every((header) => headers.includes(header));
@@ -180,6 +138,64 @@ function parseCsv(csvText: string): ScheduleRow[] {
   }
 
   return parsedRows.sort((left, right) => safeLocaleCompare(left.week_start, right.week_start));
+}
+
+function resetCompletionMessages() {
+  completionSuccess.value = "";
+  completionError.value = "";
+}
+
+async function submitCompletion() {
+  resetCompletionMessages();
+  if (!memberNumber.value.trim()) {
+    completionError.value = "Member number is required.";
+    return;
+  }
+
+  if (!cleanedFridge.value || !vacuumedFloors.value || !emptiedTrash.value) {
+    completionError.value = "Please confirm all cleaning tasks before submitting.";
+    return;
+  }
+
+  const endpoint = `${completionApiBaseUrl}${completionApiPath}`;
+
+  submittingCompletion.value = true;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        member_number: memberNumber.value.trim(),
+        cleaned_fridge: cleanedFridge.value,
+        vacuumed_floors: vacuumedFloors.value,
+        emptied_trash: emptiedTrash.value,
+        comment: completionComment.value.trim(),
+      }),
+    });
+
+    let payload: { message?: string } = {};
+    try {
+      payload = (await response.json()) as { message?: string };
+    } catch {
+      payload = {};
+    }
+
+    if (!response.ok) {
+      completionError.value = payload.message || "Failed to register cleaning completion.";
+      return;
+    }
+
+    completionSuccess.value = payload.message || "Cleaning completion registered.";
+    memberNumber.value = "";
+    cleanedFridge.value = false;
+    vacuumedFloors.value = false;
+    emptiedTrash.value = false;
+    completionComment.value = "";
+  } catch {
+    completionError.value = "Unable to submit cleaning completion right now.";
+  } finally {
+    submittingCompletion.value = false;
+  }
 }
 
 async function fetchScheduleData() {
@@ -413,5 +429,9 @@ onMounted(async () => {
 
 .submit-message.success {
   color: #1f9d55;
+}
+
+.submit-message.error {
+  color: #d93025;
 }
 </style>
