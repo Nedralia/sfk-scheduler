@@ -16,7 +16,15 @@ npm run build
 npm run preview
 ```
 
-The app reads schedule data from `/schedule` first, then `/schedule.csv`.
+The app reads schedule data directly from the public schedule CSV in S3.
+
+## Cleaning completion form
+
+The page includes a "Register Completed Cleaning" form that sends a `POST` request to:
+
+`{VITE_API_BASE_URL}/cleaning/complete`
+
+Set `VITE_API_BASE_URL` in your environment before building/running the page.
 
 ## Deploy
 
